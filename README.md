@@ -45,7 +45,30 @@ DPP should work on all modern browsers, but not on older ones.  It is usable on 
 - async/await
 - ES6 Modules
 
-## Example
+## Try It Out
+
+Try out this [live example](https://robtweed.github.io/DPP/examples/), running directly
+from the code you'll find in the */examples* folder of this repo.
+
+The first time you run it, the Proxy Object in the example (named *a*) will be empty.  Type in any valid JSON
+into the textarea box and click the update button to add some content, eg:
+
+      {
+        "hello": "world"
+      }
+
+Note that you must enter properly-formatted JSON, so string keys or values must be double-quoted.
+
+Now try reloading the page in the browser.  Provided your [browser is compatible](),
+you should see that the Proxy Object (*a*) is restored with its previous contents.
+
+Try using the browser's Developer Tools to examine the contents of the *indexedDB* database (eg
+in Chrome, use the *Application* tab to find *indexedDB*).
+
+Note that you can manually clear down the *indexedDB* database from the browser's Developer Tools.
+
+
+## Worked Example
 
 This simple example creates and populates a Persistent Object named *a*.
 
