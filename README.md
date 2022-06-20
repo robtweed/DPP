@@ -59,7 +59,7 @@ into the textarea box and click the update button to add some content, eg:
 
 Note that you must enter properly-formatted JSON, so string keys or values must be double-quoted.
 
-Now try reloading the page in the browser.  Provided your [browser is compatible](),
+Now try reloading the page in the browser.  Provided your browser is compatible (see above),
 you should see that the Proxy Object (*a*) is restored with its previous contents.
 
 Try using the browser's Developer Tools to examine the contents of the *indexedDB* database (eg
