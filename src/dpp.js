@@ -1,5 +1,4 @@
 /*
-
  ----------------------------------------------------------------------------
  | DPP: Deep Persistent Proxy Objects for JavaScript                         |
  |                                                                           |
@@ -23,16 +22,14 @@
  | See the License for the specific language governing permissions and       |
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
-
- 20 June 2022
-
  */
 
 let DPP = class {
   constructor(storeName) {
     storeName = storeName || 'DPP';
     this.name = 'DPP';
-    this.build = '0.1';
+    this.build = '1.1';
+    this.buildDate = '21 June 2022';
     this.store = storeName;
     this.objectStores = new Map();
     this.idb = false;
@@ -343,7 +340,7 @@ let DPP = class {
             if (typeof value === 'object') {
               getProps(prop, value);
             }
-            if (typeof value === 'string' || typeof value === 'number') {
+            if (['string', 'number', 'boolean', 'symbol', 'bigint'].includes(typeof value)) {
               save(prop, value);
             }      
 
