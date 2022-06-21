@@ -45,6 +45,19 @@ DPP should work on all modern browsers, but not on older ones.  It is usable on 
 - async/await
 - ES6 Modules
 
+## Installing
+
+You can use DPP directly from the Github CDN linked to this repository.  In your main module, load it using:
+
+      const {DPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp.min.js');
+
+Alternatively, clone or copy the file [*/src/dpp.min.js*](/src/dpp.min.js)
+to an appropriate directory on your web server and load it directly from there, eg:
+
+
+      const {DPP} = await import('/path/to/dpp.min.js');
+
+
 ## Try It Out
 
 Try out this [live example](https://robtweed.github.io/DPP/examples/), running directly
