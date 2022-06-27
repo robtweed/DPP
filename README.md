@@ -49,13 +49,16 @@ DPP should work on all modern browsers, but not on older ones.  It is usable on 
 
 You can use DPP directly from the Github CDN linked to this repository.  In your main module, load it using:
 
-      const {DPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp.min.js');
+```javascript
+const {DPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp.min.js');
+```
 
 Alternatively, clone or copy the file [*/src/dpp.min.js*](/src/dpp.min.js)
 to an appropriate directory on your web server and load it directly from there, eg:
 
-
-      const {DPP} = await import('/path/to/dpp.min.js');
+```javascript
+const {DPP} = await import('/path/to/dpp.min.js');
+```
 
 
 ## Try It Out
@@ -66,9 +69,11 @@ from the code you'll find in the */examples* folder of this repo.
 The first time you run it, the Proxy Object in the example (named *a*) will be empty.  Type in any valid JSON
 into the textarea box and click the update button to add some content, eg:
 
-      {
-        "hello": "world"
-      }
+```javascript
+{
+  "hello": "world"
+}
+```
 
 Note that you must enter properly-formatted JSON, so string keys or values must be double-quoted.
 
@@ -89,54 +94,57 @@ Here's the module file:
 
 ### app.js
 
-      (async () => {
+```javascript
+(async () => {
 
-        // load/import the DPP module from its source directory (change the path as appropriate)
+  // load/import the DPP module from its source directory (change the path as appropriate)
 
-        const {DPP} = await import('../js/dpp.min.js');
+  const {DPP} = await import('../js/dpp.min.js');
 
-        // create an instance of the DPP class
+  // create an instance of the DPP class
 
-        let dpp = new DPP();
+  let dpp = new DPP();
 
-        // start the indexedDB database with an object store (po_a) for our Persistent Object
+  // start the indexedDB database with an object store (po_a) for our Persistent Object
 
-        await dpp.start(['po_a']);
+  await dpp.start(['po_a']);
 
-        // instantiate our Persistent Proxy Object (a), mapped to the indexedDB database store (po_a)
+  // instantiate our Persistent Proxy Object (a), mapped to the indexedDB database store (po_a)
 
-        let a = await new dpp.persistAs('po_a').proxy();
+  let a = await new dpp.persistAs('po_a').proxy();
 
-        // Now you can create and maintain properties for your Proxy Object, eg:
+  // Now you can create and maintain properties for your Proxy Object, eg:
 
-        a.test = {
-          foo: 'bar',
-          foo2: {
-            a: 123,
-            b: 323
-          }
-        };
-        a.arr = [100, 200, 300];
+  a.test = {
+    foo: 'bar',
+    foo2: {
+      a: 123,
+      b: 323
+    }
+  };
+   a.arr = [100, 200, 300];
 
-        console.log('a: ' + JSON.stringify(a, null, 2));
+   console.log('a: ' + JSON.stringify(a, null, 2));
 
-      })();
-
+ })();
+```
 
 Load and run this module in your browser with a web page such as this:
 
 
 ### index.html
 
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <title>DPP Demo</title>
-        </head>
-        <body>
-          <script type="module" src="/dpp/js/app.js"></script>
-        </body>
-      </html>
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>DPP Demo</title>
+  </head>
+  <body>
+    <script type="module" src="/dpp/js/app.js"></script>
+  </body>
+</html>
+```
 
 
 When you load it into you browser, take a look at the console log in your browser's development tools panel.
@@ -149,13 +157,15 @@ yourself.
 So now modify the *app.js* file, removing the lines that created the content in your Persistent Object (a):
 
 
-      (async () => {
-        const {DPP} = await import('../js/dpp.min.js');
-        let dpp = new DPP();
-        await dpp.start(['po_a']);
-        let a = await new dpp.persistAs('po_a').proxy();
-        console.log('a: ' + JSON.stringify(a, null, 2));
-      })();
+```javascript
+(async () => {
+  const {DPP} = await import('../js/dpp.min.js');
+  let dpp = new DPP();
+  await dpp.start(['po_a']);
+  let a = await new dpp.persistAs('po_a').proxy();
+  console.log('a: ' + JSON.stringify(a, null, 2));
+})();
+```
 
 
 Reload the *index.html* page in your browser, and you should see that the Proxy Object (a) has been
@@ -165,13 +175,15 @@ restored to its previous state.  You can now continue to use and modify it!
 Finally, see what happens if you modify the *app.js* file again as follows:
 
 
-      (async () => {
-        const {DPP} = await import('../js/dpp.min.js');
-        let dpp = new DPP();
-        await dpp.start(['po_a']);
-        let a = await new dpp.persistAs('po_a').proxy('new');  // <== add the 'new' argument
-        console.log('a: ' + JSON.stringify(a, null, 2));
-      })();
+```javascript
+(async () => {
+  const {DPP} = await import('../js/dpp.min.js');
+  let dpp = new DPP();
+  await dpp.start(['po_a']);
+  let a = await new dpp.persistAs('po_a').proxy('new');  // <== add the 'new' argument
+  console.log('a: ' + JSON.stringify(a, null, 2));
+})();
+```
 
 This time you'll find that the *indexedDB* Object Store (po_a) is cleared down and your Proxy Object (a) is empty.
 
@@ -239,17 +251,20 @@ the Proxy Object will be empty.
 - Note that the base Proxy Object variable cannot be used as a simple variable, ie the following will not be
 persisted:
 
-
-      let a = await new dpp.persistAs('po_a').proxy('new');
-      a = 'hello world';
+```javascript
+let a = await new dpp.persistAs('po_a').proxy('new');
+a = 'hello world';
+```
 
   Instead, you must define at least one property of the Proxy Object.  ie the following **will** be persisted:
 
-      a.value = 'hello world';
+```javascript
+a.value = 'hello world';
 
-      a.arr = [1, 2, 3];
+a.arr = [1, 2, 3];
 
-      a.obj = {hello: 'world};    
+a.obj = {hello: 'world};
+```
 
 
 ## The JSON Database
