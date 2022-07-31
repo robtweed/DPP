@@ -41,7 +41,7 @@ let LIST = class {
     let qOptions = options.qOptions;
 
     if (!DPP) {
-      DPP = await import('https://robtweed.github.io/DPP/src/dpp.min.js');
+      DPP = await import('https://robtweed.github.io/DPP/src/dpp.js');
     }
 
     const obj = new LIST();

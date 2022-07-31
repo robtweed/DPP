@@ -1,6 +1,6 @@
 (async () => {
 
-  const {DPP} = await import('../src/dpp.min.js');
+  const {DPP} = await import('../src/dpp.js');
   let storeName = 'po_a';
 
   let dpp = await DPP.create({storeName: storeName});
