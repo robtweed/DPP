@@ -22,24 +22,48 @@
  | See the License for the specific language governing permissions and       |
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
+
+31 July 2022
+
  */
 
 let DPP = class {
-  constructor(storeName) {
-    storeName = storeName || 'DPP';
-    this.name = 'DPP';
-    this.build = '1.1';
-    this.buildDate = '21 June 2022';
-    this.store = storeName;
-    this.objectStores = new Map();
-    this.idb = false;
-    this.stores = {};
-    this.listeners = new Map();
-    this.logging = false;
-    this.target = {};
-    this.started = false;
+  constructor(storeName, idb_name, QOper8, qOptions, logging) {
 
-    let _this = this;
+    if (typeof storeName === 'object') {
+      logging = storeName.logging || false;
+      QOper8 = storeName.QOper8;
+      qOptions = storeName.qOptions || {};
+      idb_name = storeName.idb_name || 'DPP';
+      storeName = storeName.storeName;
+    }
+
+    storeName = storeName || 'DPP';
+    this.name = 'DPP-Q';
+    this.build = '2.1';
+    this.buildDate = '31 July 2022';
+    this.listeners = new Map();
+    this.logging = logging || false;
+    this.storeName = storeName;
+
+    let qHandlerPath = qOptions.handlerPath || './idb_handlers/';
+    let qWorkerPath = qOptions.workerPath || './js/';
+
+    this.QOper8 = new QOper8({
+      poolSize: 1,
+      workerLoaderUrl: qOptions.workerLoaderUrl || qWorkerPath + 'QOper8Worker.min.js',
+      logging: qOptions.logging,
+      handlersByMessageType: new Map([
+        ['instantiate', qHandlerPath + 'instantiate.min.js'],
+        ['restore', qHandlerPath + 'restore.min.js'],
+        ['put', qHandlerPath + 'put.min.js'],
+        ['delete', qHandlerPath + 'delete.min.js']
+      ]),
+      workerInactivityCheckInterval: qOptions.workerInactivityCheckInterval || 20,
+      workerInactivityLimit: qOptions.workerInactivityLimit || 60
+    });
+
+    let dpp = this;
 
     this.deepProxy = class {
       constructor(target, handler) {
@@ -101,171 +125,14 @@ let DPP = class {
         this._preproxy.set(p, obj);
         return p;
       }
-    }
-
-    this.objectStore = class {
-      constructor(name) {
-        this.name = name;
-      }
-
-      getObjectStore(mode) {
-        let transaction = _this.idb.transaction(this.name, mode);
-        return transaction.objectStore(this.name);
-      }
-
-
-      iterate_db(matchKey, callback, xit) {
-        if (!callback && typeof matchKey === 'function') {
-          callback = matchKey;
-          matchKey = null;
-        }
-        let keyRange;
-        let matchString = '';
-        if (matchKey) {
-          keyRange = IDBKeyRange.lowerBound(matchKey);
-          matchString = matchKey.toString() + ',';
-        }
-        let objectStore = this.getObjectStore();
-        let request = objectStore.openCursor(keyRange);
-        request.onsuccess = function(evt) {
-          let cursor = evt.target.result;
-          if (cursor) {
-            let value = cursor.value;
-            if (!matchKey) {
-              if (callback) callback(value.id, value.value);
-              cursor.continue();
-            }
-            else {
-              let keyString = value.id.toString() + ',';
-              if (matchString !== '' && keyString.startsWith(matchString)) {
-                if (callback) callback(value.id, value.value);
-                cursor.continue();
-              }
-              else {
-                if (xit && typeof xit === 'function') xit();
-              }
-            }
-          }
-          else {
-            if (xit && typeof xit === 'function') xit();
-          }
-        };
-      }
-
-      iterate(matchKey, callback) {
-        if (!callback && typeof matchKey === 'function') {
-          callback = matchKey;
-          matchKey = null;
-        }
-        let _this = this;
-        return new Promise((resolve) => {
-          _this.iterate_db(matchKey, callback, function() {
-            resolve();
-          });
-        });
-      }
-
-      async clearByKey(key) {
-        let _this = this;
-        await this.iterate(key, async function(id) {
-          await _this.delete(id);
-        });
-      }
-
-      clear_db(callback) {
-        if (!_this.idb) {
-          return callback({error: 'clear() Error: Database has not been opened'});
-        }
-        let objectStore = this.getObjectStore('readwrite');
-        _this.logMessage('*** cleardown database');
-        let request = objectStore.clear();
-         request.onsuccess = function() {
-           callback({ok: true});
-         };
-
-         request.onerror = function() {
-           callback({error: request.error});
-         };
-      }
-
-      clear() {
-        let _this = this;
-        return new Promise((resolve) => {
-          _this.clear_db(function(obj) {
-            resolve(obj);
-          });
-        });
-      }
-
-      put_item(key, value, callback) {
-        if (!_this.idb) {
-          return callback({error: 'addItem Error: Database has not been opened'});
-        }
-        if (!callback) {
-          callback = value;
-          value = key;
-          key = null;
-        }
-        let objectStore = this.getObjectStore('readwrite');
-        _this.logMessage('*** put: key = ' + key);
-        //let request = objectStore.put(value, key);
-        let request = objectStore.put(value);
-         request.onsuccess = function() {
-           callback({key: request.result});
-         };
-
-         request.onerror = function() {
-           callback({error: request.error});
-         };
-      }
-
-      put(key, value) {
-        if (!value) {
-          value = key;
-          key = null;
-        }
-        let _this = this;
-        return new Promise((resolve) => {
-          _this.put_item(key, value, function(obj) {
-            resolve(obj);
-          });
-        });
-      }
-
-
-      delete_item(key, callback) {
-        if (!_this.idb) {
-          return callback({error: 'delete_item Error: Database has not been opened'});
-        }
-        let objectStore = this.getObjectStore('readwrite');
-        _this.logMessage('*** delete: key = ' + key);
-        let request = objectStore.delete(key);
-         request.onsuccess = function() {
-           callback({ok: true});
-         };
-
-         request.onerror = function() {
-           callback({error: request.error});
-         };
-      }
-
-      delete(key) {
-        let _this = this;
-        return new Promise((resolve) => {
-          _this.delete_item(key, function(obj) {
-            resolve(obj);
-          });
-        });
-      }
-
     };
 
     this.persistAs = class {
       constructor(storeName) {
 
-        _this.target[storeName] = {};
+        //_this.target[storeName] = {};
         this.storeName = storeName;
-        this.store = _this.stores[storeName];
+        //this.store = _this.stores[storeName];
         this.persist = true;
 
       }
@@ -274,18 +141,13 @@ let DPP = class {
 
         let self = this;
         let storeName = this.storeName;
-        let store = this.store;
-        let p = new _this.deepProxy(_this.target[storeName], {
+        //let p = new _this.deepProxy(_this.target[storeName], {
+        let p = new dpp.deepProxy({}, {
 
           async set(target, prop, value, receiver) {
 
             if (!self.persist) return;
-
-            _this.logMessage('proxy set called with prop = ' + JSON.stringify(prop));
-            //console.log(target);
-            //console.log(value);
-            //console.log(receiver);
-            //console.log('-----');
+            dpp.logMessage('proxy set called with prop = ' + JSON.stringify(prop));
 
             let o = self.receiver;
             let isArr = false;
@@ -295,46 +157,43 @@ let DPP = class {
               isArr = Array.isArray(o);
             });
 
-            async function save(key, value) {
-              _this.logMessage('save called with key ' + JSON.stringify(key) + ' = ' + value);
-
-              // first clear down any existing indexeddb records with matching keys
-              // in case any lower-level records exist
-
-              await store.clearByKey(key);
+            function save(key, value) {
 
               if (key.length === 1) target[prop] = value;
-
-              let data = {
-                id: key,
+              dpp.emit('save', value);
+              let obj = {
+                type: 'put',
+                key: key,
                 value: value
               };
-              await store.put(data);      
+              dpp.QOper8.message(obj);
             }
 
             async function getProps(parentProp, obj) {
 
-                _this.logMessage('getProps called for ' + JSON.stringify(parentProp));
-                _this.logMessage('obj=' + JSON.stringify(obj));
+              dpp.logMessage('getProps called for ' + JSON.stringify(parentProp));
+              dpp.logMessage('obj=' + JSON.stringify(obj));
 
               // clear down any existing indexeddb records that might exist with this set of keys
-              await store.clearByKey(parentProp);
+
+              let msg = {
+                type: 'delete',
+                key: parentProp
+              }
+              dpp.QOper8.message(msg);
 
               let isArr = Array.isArray(obj);
-              
-              Object.entries(obj).forEach(async (entry, index) => {
-                let [key, value] = entry;
+              for (let [key, value] of Object.entries(obj)) {
                 if (isArr) key = [key];
                 let opath = parentProp.slice();
                 opath.push(key);
                 if (typeof value !== 'object') {
-                  await save(opath, value);
+                  save(opath, value);
                 }
                 else {
                   getProps(opath, value);
                 }
-              });
-
+              }
             }
 
             if (typeof value === 'object') {
@@ -344,6 +203,7 @@ let DPP = class {
               save(prop, value);
             }      
 
+            dpp.emit('proxy_set_completed', prop);
             return true;
           },
 
@@ -356,12 +216,16 @@ let DPP = class {
               if (isArr) path[index] = [p];
               isArr = Array.isArray(o);
             });
-
-            store.clearByKey(path);
-            
+            dpp.emit('delete', path);
+            let msg = {
+              type: 'delete',
+              key: path
+            }
+            dpp.QOper8.message(msg);
           }
 
         });
+
         this.receiver = p;
 
         if (mode !== 'new') {
@@ -380,45 +244,38 @@ let DPP = class {
       }
 
       async restore() {
-        var ref = {};
-        await this.store.iterate(function(key, value) {
-          var o = ref;
-          let key1;
-          key.forEach(function(prop, index) {
-            let isArr = false;
-            if (Array.isArray(prop)) {
-              isArr = true;
-              prop = +prop[0];
-            }
-            if (index === 0) {
-              key1 = prop;
-            }
-            if (index === (key.length - 1)) {
-              o[prop] = value;
-            }
-            else {
-              let nextKey = key[index + 1];
-              if (Array.isArray(nextKey)) {
-                if (typeof o[prop] === 'undefined') o[prop] = [];
-              }
-              else {
-                if (typeof o[prop] === 'undefined') o[prop] = {};
-              }
-              o = o[prop];
-            }
-          });
-        });
+        let obj = {
+          type: 'restore',
+          storeName: this.storeName
+        };
+        let ref = await dpp.QOper8.send(obj);
 
         // avoid writing back to database during restore of proxy object
         this.persist = false;
-        for (let prop in ref) {
-          //obj[prop] = ref[prop];
-          this.receiver[prop] = ref[prop];
+        for (let prop in ref.obj) {
+          this.receiver[prop] = ref.obj[prop];
         }
         this.persist = true;
+      
       }
     };
+  }
 
+  start(storeNames) {
+    if (!Array.isArray(storeNames)) storeNames = [storeNames];
+    let obj = {
+      type: 'instantiate',
+      storeName: this.storeName,
+      objectStores: storeNames
+    };
+    this.QOper8.message(obj);
+  }
+
+  isEmpty(obj) {
+    for (const name in obj) {
+      return false;
+    }
+    return true;
   }
 
   on(type, callback) {
@@ -445,113 +302,6 @@ let DPP = class {
     }
   }
 
-  async start_idb(objectStores, callback) {
-    // the hook will have defined any objectStores being used
-    // if there are any new ones, need to add them in a version upgrade
-
-    if (this.store) {
-
-      objectStores = objectStores || [];
-
-      let _this = this;
-
-      objectStores.forEach(function(name) {
-        _this.useObjectStore(name, 'id');
-      });
-
-      await this.open();
-      let upgradeNeeded = false;
-
-      for (const name of this.objectStores.keys()) {
-        if (!this.idb.objectStoreNames.contains(name)) upgradeNeeded = true;
-        this.stores[name] = new this.objectStore(name);
-      }
-      this.logMessage('upgradeNeeded: ' + upgradeNeeded);
-      if (upgradeNeeded) {
-        // re-open database as new version and add the new object stores
-        let newVersion = this.idb.version + 1;
-        this.idb.close();
-        await this.open(newVersion);
-        this.emit('databaseReady');
-        callback();
-      }
-      else {
-        this.emit('databaseReady');
-        callback();
-      }
-    }
-  }
-
-  start(objectStores) {
-    objectStores = objectStores || [];
-    let _this = this;
-    return new Promise((resolve) => {
-      this.start_idb(objectStores, function() {
-        resolve(true);
-      });
-    });
-  }
-
-  useObjectStore(name, keyPath) {
-    let props = {};
-    if (keyPath) {
-      props.keyPath = keyPath;
-    }
-    else {
-      props.autoIncrement = true;
-    }
-    this.objectStores.set(name, props);
-  }
-
-  deleteObjectStore(name) {
-    this.objectStores.delete(name);
-  }
-
-  createObjectStores() {
-    // create any newly-defined object stores
-    if (this.idb) {
-      for (const [key, value] of this.objectStores.entries()) {
-        if (!this.idb.objectStoreNames.contains(key)) {
-          this.logMessage('object store created: ' + key);
-          this.idb.createObjectStore(key, value);
-          if (!this.stores[key]) this.stores[key] = new this.objectStore(key);
-        }
-      }
-    }
-  }
-
-  open_database(version, callback) {
-    if (!this.store) {
-      return callback({error: 'Open Database Error: Store Name not defined'});
-    }
-    if (!callback) {
-      callback = version;
-      version = null;
-    }
-    let openRequest = indexedDB.open(this.store, version);
-    let _this = this;
-    openRequest.onsuccess = function (evt) {
-      _this.idb = evt.target.result;
-      _this.emit('databaseOpen', _this.idb);
-      callback({db: _this.idb});
-    };
-    openRequest.onerror = function (evt) {
-      callback({error: evt.target.errorCode});
-    };
-    openRequest.onupgradeneeded = function (evt) {
-      _this.idb = evt.target.result;
-      _this.createObjectStores();
-    };
-  }
-
-  open(version) {
-    let _this = this;
-    return new Promise((resolve) => {
-      this.open_database(version, function(obj) {
-        resolve(obj);
-      });
-    });
-  }
 
 };
 

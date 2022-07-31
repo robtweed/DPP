@@ -1,6 +1,20 @@
 (async () => {
 
   const {DPP} = await import('../src/dpp.min.js');
+  const {QOper8} = await import('https://robtweed.github.io/QOper8/src/QOper8.min.js');
+
+  let storeName = 'po_a';
+
+  let dpp = new DPP({
+    storeName: storeName,
+    QOper8: QOper8,
+    qOptions: {
+      workerLoaderUrl: 'https://robtweed.github.io/QOper8/src//QOper8Worker.min.js'
+    }
+  });
+  dpp.start(storeName);
+  let a = await new dpp.persistAs(storeName).proxy();
+  document.getElementById('content').innerText = JSON.stringify(a, null, 2);
 
   document.getElementById('updateBtn').addEventListener("click", function() {
     try {
@@ -16,12 +30,6 @@
       alert('Invalid JSON');
     }
   });
-
-
-  let dpp = new DPP();
-  await dpp.start(['po_a']);
-  let a = await new dpp.persistAs('po_a').proxy();
-  document.getElementById('content').innerText = JSON.stringify(a, null, 2);
 
 
 })();
