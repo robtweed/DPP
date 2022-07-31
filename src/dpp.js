@@ -261,7 +261,8 @@ let DPP = class {
 
   static async create(options) {
     if (!options.QOper8) {
-      options.QOper8 = await import('https://robtweed.github.io/QOper8/src/QOper8.min.js');
+      let {QOper8} = await import('https://robtweed.github.io/QOper8/src/QOper8.min.js');
+      options.QOper8 = QOper8;
     }
     let dpp = new DPP(options);
     return dpp;
