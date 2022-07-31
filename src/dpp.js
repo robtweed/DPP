@@ -43,9 +43,9 @@ let DPP = class {
     this.storeName = storeName;
 
     let qHandlerPath = qOptions.handlerPath || 'https://robtweed.github.io/DPP/src/idb_handlers/';
-    if (qHandlerPath.charAt(str.length - 1) !== '/') qHandlerPath = qHandlerPath + '/';
+    if (qHandlerPath.charAt(qHandlerPath.length - 1) !== '/') qHandlerPath = qHandlerPath + '/';
     let qWorkerPath = qOptions.workerLoaderPath || 'https://robtweed.github.io/QOper8/src/';
-    if (qWorkerPath.charAt(str.length - 1) !== '/') qWorkerPath = qWorkerPath + '/';
+    if (qWorkerPath.charAt(qWorkerPath.length - 1) !== '/') qWorkerPath = qWorkerPath + '/';
 
     this.QOper8 = new QOper8({
       poolSize: 1,
