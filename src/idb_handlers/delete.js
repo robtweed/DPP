@@ -29,7 +29,7 @@ QOper8 WebWorker for DPP: Delete the object record from IndexDB Database
 
  */
 
-export async function handler(obj, finished) {
+self.handler = async function(obj, finished) {
 
   let ref = {};
   let worker = this;

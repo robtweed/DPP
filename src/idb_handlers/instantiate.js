@@ -29,7 +29,10 @@ QOper8 WebWorker for DPP: Instantiate/Load the IndexDB Database
 
  */
 
-export async function handler(obj, finished) {
+
+self.handler = async function(obj, finished) {
+
+  //export async function handler(obj, finished) {
 
   let worker = this;
 
@@ -283,3 +286,4 @@ export async function handler(obj, finished) {
   }
 
 };
+
