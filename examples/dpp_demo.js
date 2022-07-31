@@ -9,7 +9,7 @@
     storeName: storeName,
     QOper8: QOper8,
     qOptions: {
-      workerLoaderUrl: 'https://robtweed.github.io/QOper8/src//QOper8Worker.min.js'
+      workerLoaderUrl: 'https://robtweed.github.io/QOper8/src/QOper8Worker.min.js'
     }
   });
   dpp.start(storeName);
