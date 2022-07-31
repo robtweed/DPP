@@ -2,7 +2,13 @@
 
   const {DPP} = await import('../src/dpp.js');
 
-  let dpp = await DPP.create({storeName: 'po_a'});
+  let dpp = await DPP.create({
+    storeName: 'po_a',
+    logging: true,
+    qOptions: {
+      logging: true
+    }
+  });
   let a = await dpp.start();
 
   document.getElementById('content').innerText = JSON.stringify(a, null, 2);
