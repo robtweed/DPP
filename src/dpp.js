@@ -28,17 +28,13 @@
  */
 
 let DPP = class {
-  constructor(storeName, idb_name, QOper8, qOptions, logging) {
+  constructor(options) {
+    let logging = options.logging || false;
+    let QOper8 = options.QOper8;
+    let qOptions = options.qOptions || {};
+    let idb_name = options.idb_name || 'DPP';
+    let storeName = options.storeName || 'DPP';
 
-    if (typeof storeName === 'object') {
-      logging = storeName.logging || false;
-      QOper8 = storeName.QOper8;
-      qOptions = storeName.qOptions || {};
-      idb_name = storeName.idb_name || 'DPP';
-      storeName = storeName.storeName;
-    }
-
-    storeName = storeName || 'DPP';
     this.name = 'DPP-Q';
     this.build = '2.1';
     this.buildDate = '31 July 2022';
@@ -46,12 +42,14 @@ let DPP = class {
     this.logging = logging || false;
     this.storeName = storeName;
 
-    let qHandlerPath = qOptions.handlerPath || './idb_handlers/';
-    let qWorkerPath = qOptions.workerPath || './js/';
+    let qHandlerPath = qOptions.handlerPath || 'https://robtweed.github.io/DPP/src/idb_handlers/';
+    if (qHandlerPath.charAt(str.length - 1) !== '/') qHandlerPath = qHandlerPath + '/';
+    let qWorkerPath = qOptions.workerLoaderPath || 'https://robtweed.github.io/QOper8/src/';
+    if (qWorkerPath.charAt(str.length - 1) !== '/') qWorkerPath = qWorkerPath + '/';
 
     this.QOper8 = new QOper8({
       poolSize: 1,
-      workerLoaderUrl: qOptions.workerLoaderUrl || qWorkerPath + 'QOper8Worker.min.js',
+      workerLoaderUrl: qWorkerPath + 'QOper8Worker.min.js',
       logging: qOptions.logging,
       handlersByMessageType: new Map([
         ['instantiate', qHandlerPath + 'instantiate.min.js'],
@@ -59,7 +57,7 @@ let DPP = class {
         ['put', qHandlerPath + 'put.min.js'],
         ['delete', qHandlerPath + 'delete.min.js']
       ]),
-      workerInactivityCheckInterval: qOptions.workerInactivityCheckInterval || 20,
+      workerInactivityCheckInterval: qOptions.workerInactivityCheckInterval || 60,
       workerInactivityLimit: qOptions.workerInactivityLimit || 60
     });
 
@@ -259,6 +257,14 @@ let DPP = class {
       
       }
     };
+  }
+
+  static async create(options) {
+    if (!options.QOper8) {
+      options.QOper8 = await import('https://robtweed.github.io/QOper8/src/QOper8.min.js');
+    }
+    let dpp = new DPP(options);
+    return dpp;
   }
 
   start(storeNames) {

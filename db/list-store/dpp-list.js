@@ -40,8 +40,12 @@ let LIST = class {
     let QOper8 = options.QOper8;
     let qOptions = options.qOptions;
 
+    if (!DPP) {
+      DPP = await import('https://robtweed.github.io/DPP/src/dpp.min.js');
+    }
+
     const obj = new LIST();
-    let dpp = new DPP({
+    let dpp = await DPP.create({
       storeName: storeName,
       logging: logging,
       QOper8: QOper8,
