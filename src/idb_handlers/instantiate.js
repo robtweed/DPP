@@ -246,7 +246,7 @@ export async function handler(obj, finished) {
     this.idb = {
       objectStores: new Map(),
       stores: {},
-      store: obj.storeName
+      store: obj.idb_name
     }
   }
 

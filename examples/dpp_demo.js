@@ -1,11 +1,9 @@
 (async () => {
 
   const {DPP} = await import('../src/dpp.js');
-  let storeName = 'po_a';
 
-  let dpp = await DPP.create({storeName: storeName});
-  dpp.start(storeName);
-  let a = await new dpp.persistAs(storeName).proxy();
+  let dpp = await DPP.create({storeName: 'po_a'});
+  let a = await dpp.start();
 
   document.getElementById('content').innerText = JSON.stringify(a, null, 2);
 

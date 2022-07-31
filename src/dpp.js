@@ -33,7 +33,7 @@ let DPP = class {
     let QOper8 = options.QOper8;
     let qOptions = options.qOptions || {};
     let idb_name = options.idb_name || 'DPP';
-    let storeName = options.storeName || 'DPP';
+    let storeName = options.storeName || 'DPP_Store';
 
     this.name = 'DPP-Q';
     this.build = '2.1';
@@ -41,6 +41,7 @@ let DPP = class {
     this.listeners = new Map();
     this.logging = logging || false;
     this.storeName = storeName;
+    this.idb_name = idb_name;
 
     let qHandlerPath = qOptions.handlerPath || 'https://robtweed.github.io/DPP/src/idb_handlers/';
     if (qHandlerPath.charAt(qHandlerPath.length - 1) !== '/') qHandlerPath = qHandlerPath + '/';
@@ -94,7 +95,8 @@ let DPP = class {
               }
               return deleted;
             }
-            return false;
+            //return false;
+            return true;
           }
         }
       }
@@ -126,20 +128,15 @@ let DPP = class {
     };
 
     this.persistAs = class {
-      constructor(storeName) {
-
-        //_this.target[storeName] = {};
-        this.storeName = storeName;
-        //this.store = _this.stores[storeName];
+      constructor() {
+        this.storeName = dpp.storeName;
         this.persist = true;
-
       }
 
       async proxy(mode) {
 
         let self = this;
         let storeName = this.storeName;
-        //let p = new _this.deepProxy(_this.target[storeName], {
         let p = new dpp.deepProxy({}, {
 
           async set(target, prop, value, receiver) {
@@ -268,14 +265,14 @@ let DPP = class {
     return dpp;
   }
 
-  start(storeNames) {
-    if (!Array.isArray(storeNames)) storeNames = [storeNames];
-    let obj = {
+  async start(mode) {
+    let msg = {
       type: 'instantiate',
-      storeName: this.storeName,
-      objectStores: storeNames
+      idb_name: this.idb_name,
+      objectStores: [this.storeName]
     };
-    this.QOper8.message(obj);
+    this.QOper8.message(msg);
+    return await new this.persistAs().proxy(mode);
   }
 
   isEmpty(obj) {

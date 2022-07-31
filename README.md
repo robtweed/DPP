@@ -26,13 +26,23 @@ DPP uses the browser's built-in *indexedDB* database to maintain a persistent im
 DPP also makes use of JavaScript Proxy Objects, allowing changes to your object(s) to be trapped and recorded
 to *indexedDB*.
 
-## Do you need to understand the *indexedDB* API in order to use DPP?
+Because *indexedDB*'s APIs are asynchronous, a key challenge was how to keep the database copy of the object in synchronisation with the local proxy object, particularly if rapid sequences of sets and deletes occur. 
 
-No.  DPP implements all the necessary *indexedDB* mechanics for you behind the scenes.  You just use a couple of
-simple DPP APIs to specify a persistent object, and DPP looks after everything else for you automatically.
+The solution is provided by the unique characteristics of our queue-based [QOper8](https://github.com/robtweed/QOper8) WebWorker management module.
+
+DPP establishes a single *QOper8* worker process, and any changes to the local object are added by DPP to the *Qoper8* queue.  By using a single persistent *QOper8* WebWorker process, the corresponding changes to the *indexedDB* copy of the object can be guaranteed to be handled in strict chronological sequence within the WebWorker.
+
+In summary, DPP decouples your local object from the *indexedDB* copy.  The *indexedDB* copy is only used by the WebWorker. All you have to do is manipulate your local object and let DPP do the rest!
+
+
+## Do you need to understand the *indexedDB* API or WebWorkers in order to use DPP?
+
+No.  DPP implements all the necessary *indexedDB*, *Qoper8* and WebWorker mechanics for you behind the scenes.  
+
+You just use a couple of simple DPP APIs to specify a persistent object, and DPP looks after everything else for you automatically.
 
 When using a DPP-defined Persistent Object, you are accessing its Proxy Object and not the *indexedDB* database.
-The *indexedDB* database image of it is maintained asynchronously and automatically behind the scenes for you.
+The *indexedDB* database image of it is maintained automatically behind the scenes for you within its own WebWorker process.
 
 The only time the *indexedDB* version is directly used by DPP is to automatically restore the contents of your Persistent Object(s) whenever you start a new browser session.
 
@@ -44,19 +54,7 @@ DPP should work on all modern browsers, but not on older ones.  It is usable on 
 - Proxy Objects
 - async/await
 - ES6 Modules
-
-## Installing
-
-You can use DPP directly from the Github CDN linked to this repository.  In your main module, load it using:
-
-      const {DPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp.min.js');
-
-Alternatively, clone or copy the file [*/src/dpp.min.js*](/src/dpp.min.js)
-to an appropriate directory on your web server and load it directly from there, eg:
-
-
-      const {DPP} = await import('/path/to/dpp.min.js');
-
+- WebWorkers
 
 ## Try It Out
 
@@ -70,7 +68,7 @@ into the textarea box and click the update button to add some content, eg:
         "hello": "world"
       }
 
-Note that you must enter properly-formatted JSON, so string keys or values must be double-quoted.
+Note that when using this example, you must enter properly-formatted JSON, so string keys or values must be double-quoted.  This is because the text you enter into the textarea window has to be parsed as JSON before being applied to the Proxy object.
 
 Now try reloading the page in the browser.  Provided your browser is compatible (see above),
 you should see that the Proxy Object (*a*) is restored with its previous contents.
@@ -81,9 +79,134 @@ in Chrome, use the *Application* tab to find *indexedDB*).
 Note that you can manually clear down the *indexedDB* database from the browser's Developer Tools.
 
 
+## Installing
+
+### Using a CDN Copy
+
+You can use DPP directly from the Github CDN linked to this repository.  In your main module, load it using:
+
+      const {DPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp.min.js');
+
+### Using a Local Copy
+
+Alternatively, clone or copy the folder [*/src*](./src) to an appropriate directory on your web server (eg */var/www/dpp*).
+
+You should now have the following files in your web server folder:
+
+        - dpp.js
+        - dpp.min.js
+        - idb_handlers
+          - delete.js
+          - delete.min.js
+          - instantiate.js
+          - instantiate.min.js
+          - put.js
+          - put.min.js
+          - restore.js
+          - restore.min.js
+
+
+You can now load DPP directly from your Web Server, eg:
+
+
+      const {DPP} = await import('/dpp/dpp.min.js');
+
+
+## Starting DPP
+
+### Using the CDN Version
+
+You need to decide on a store name: this is the name of the store that will be used by indexedDB to maintain your object.  The name is entirely for you to decide, eg
+
+        let storeName = 'myObjCopy';
+
+Optionally you can specify an *indexedDB* database name.  By default, DPP will apply a database name of "DPP".  Otherwise we can do the following:
+
+        let idb_name = 'MY-DB';
+
+Now instantiate an instance of DPP for your object:
+
+        const {DPP} = await import('/dpp/dpp.min.js');
+
+        let dpp = await DPP.create({
+          storeName: storeName,
+          idb_name: idb_name
+        });
+
+As noted above, if you didn't provide an *idb_name* property, DPP would use an *indexedDB* database name of *DPP*.
+
+
+Then start your DPP instance, which will also attach your local object to its corresponding copy in *indexedDB*:
+
+        let myObj = await dpp.start();
+
+You're ready to start using your object!
+
+Note that this approach will use CDN versions of *QOper8*'s resources and also CDN versions of DPP's *QOper8* WebWorker handler modules.
+
+
+### Using a Local Copy of DPP
+
+By default, DPP will use a copy of *QOper8* from its Github repository.  That's what happens behind the scenes if you use this method of instantiation (and it's why you must await its completion):
+
+        let dpp = await DPP.create({
+          storeName: storeName
+        });
+
+You can, however, use your own local copy of *QOper8* if you've copied it from the Github repository to your own web server.  For example, let's say you installed it in the folder */var/www/qoper8* on your Web Server.
+
+You can instantiate DPP as follows:
+
+        const {DPP} = await import('/dpp/dpp.min.js');
+        const {QOper8} = await import('/qoper8/QOper8.min.js');
+
+        let storeName = 'myObjCopy';
+        let idb_name = 'MY-DB';  // optional
+
+        let dpp = new DPP({
+          storeName: storeName,
+          idb_name: idb_name,    // optional, 'DPP' is the default
+          QOper8: QOper8
+        });
+
+However, if started in this way, QOper8 will still load its Worker Loader Script from the *QOper8* CDN on Github, and also load the DPP WebWorker handler modules from the DPP CDN on Github.
+
+If you want to load everything using local copies, you need to do the following:
+
+        const {DPP} = await import('/dpp/dpp.min.js');
+        const {QOper8} = await import('/qoper8/QOper8.min.js');
+
+        let storeName = 'myObjCopy';
+        let idb_name = 'MY-DB';
+
+        let dpp = new DPP({
+          storeName: storeName,
+          idb_name: idb_name,
+          QOper8: QOper8,
+          qOptions: {
+            workerLoaderPath: '/qoper8/',
+            handlerPath: '/dpp/idb_handlers/'
+          }
+        });
+
+
+You can now start DPP and attach your local object to its *indexedDB* copy:
+
+        let myObj = await dpp.start();
+
+You're ready to start using your object!
+
+
+## Using Your Object
+
+You can now add properties to your local object, and subsequently change any content within those properties: as far as you're concerned, you just use your object as normal.  Every change you make to your object will automatically be mirrored in the decoupled *indexedDB* copy.
+
+if you restart your script in your browser, you'll find that the previous contents of your object are recovered automatically!
+
+
 ## Worked Example
 
-This simple example creates and populates a Persistent Object named *a*.
+This simple example creates and populates a Persistent Object named *a*.  It will use the CDN versions of everything:
 
 Here's the module file:
 
@@ -93,19 +216,16 @@ Here's the module file:
 
         // load/import the DPP module from its source directory (change the path as appropriate)
 
-        const {DPP} = await import('../js/dpp.min.js');
+         const {DPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp.min.js');
 
-        // create an instance of the DPP class
+        // We'll use an indexedDB storename named "po_a"
+        // and create an instance of the DPP class
 
-        let dpp = new DPP();
+        let dpp = await DPP.create({storeName: 'po_a'});
 
-        // start the indexedDB database with an object store (po_a) for our Persistent Object
+        // start the indexedDB database and attach a local object to the indexDB store:
 
-        await dpp.start(['po_a']);
-
-        // instantiate our Persistent Proxy Object (a), mapped to the indexedDB database store (po_a)
-
-        let a = await new dpp.persistAs('po_a').proxy();
+        let a = await dpp.start();
 
         // Now you can create and maintain properties for your Proxy Object, eg:
 
@@ -134,7 +254,7 @@ Load and run this module in your browser with a web page such as this:
           <title>DPP Demo</title>
         </head>
         <body>
-          <script type="module" src="/dpp/js/app.js"></script>
+          <script type="module" src="/app.js"></script>
         </body>
       </html>
 
@@ -143,17 +263,16 @@ When you load it into you browser, take a look at the console log in your browse
 
 You'll be able to see its persisted image in the *indexedDB* database by using the *Application* tab in your
 browser's development tools panel.  Remember that you don't normally need to access the *indexedDB* database
-yourself.
+yourself, but it's interesting to inspect its contents.
 
 
 So now modify the *app.js* file, removing the lines that created the content in your Persistent Object (a):
 
 
       (async () => {
-        const {DPP} = await import('../js/dpp.min.js');
-        let dpp = new DPP();
-        await dpp.start(['po_a']);
-        let a = await new dpp.persistAs('po_a').proxy();
+         const {DPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp.min.js');
+        let dpp = await DPP.create({storeName: 'po_a'});
+        let a = await dpp.start();
         console.log('a: ' + JSON.stringify(a, null, 2));
       })();
 
@@ -166,10 +285,9 @@ Finally, see what happens if you modify the *app.js* file again as follows:
 
 
       (async () => {
-        const {DPP} = await import('../js/dpp.min.js');
-        let dpp = new DPP();
-        await dpp.start(['po_a']);
-        let a = await new dpp.persistAs('po_a').proxy('new');  // <== add the 'new' argument
+         const {DPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp.min.js');
+        let dpp = await DPP.create({storeName: 'po_a'});
+        let a = await dpp.start('new');                   // <== add the 'new' argument
         console.log('a: ' + JSON.stringify(a, null, 2));
       })();
 
@@ -184,32 +302,30 @@ This time you'll find that the *indexedDB* Object Store (po_a) is cleared down a
 
 - Creating an instance of the DPP Class
 
-        let dpp = new DPP(optional_database_name);
+  - Using QOper8 from CDN
 
-  If you do not specify an *indexedDB* database name, *DPP* will be used as the default database name.
+        let dpp = await DPP.create({
+          storeName: storeName,
+          idb_name: idbName           // optional, 'DPP' used if omitted
+        });
 
-  Note: Instantiating the DPP Class does not open your *indexedDB* database
+  - Using a local copy of QOper8:
 
-- Open/Start the *indexedDB* Database
+        const {QOper8} = await import('/qoper8/QOper8.min.js');
 
-      await dpp.start(array_of_objectStore_names)
+        let dpp = new DPP({
+          storeName: storeName,
+          idb_name: idb_name,
+          QOper8: QOper8,
+          qOptions: {
+            workerLoaderPath: '/qoper8/',
+            handlerPath: '/dpp/idb_handlers/'
+          }
+        });
 
+- Open/Start DPP and connect a local object to the *indexedDB* Database store
 
-  You must specify the names of all the *indexedDB* objectStores that you want to use for your Persistent Object(s).
-
-  Each of your Persistent Objects should be assigned to its own uniquely-named *indexedDB* ObjectStore.
-
-  DPP automatically looks after any *indexedDB* versioning issues if/when you specify (and therefore add) new ObjectStores
-
-
-- Specify/Define a Persistent Object
-
-      let obj_name = await new dpp.persistAs(objectStore_name).proxy(mode);
-
-  - *obj_name* can be any valid JavaScript object name identifier
-
-  - *objectStore_name* **MUST** match a member of the array of ObjectStore names that you used to start *indexedDB* in
-the previous API above.
+      let local_object = await dpp.start(mode)
 
   - If *mode* is not specified, the Proxy Object specified by *obj_name* will be restored with any existing data from
 the specified *indexedDB* ObjectStore
@@ -240,7 +356,7 @@ the Proxy Object will be empty.
 persisted:
 
 
-      let a = await new dpp.persistAs('po_a').proxy('new');
+      let a = await dpp.start('new');
       a = 'hello world';
 
   Instead, you must define at least one property of the Proxy Object.  ie the following **will** be persisted:
