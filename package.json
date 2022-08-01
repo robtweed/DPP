@@ -1,0 +1,28 @@
+{
+  "name": "dpp-db",
+  "version": "2.1.0",
+  "description": "Deep Persistent Proxy: Persistent Objects in your Browser",
+  "main": "/src/dpp.js",
+  "browser": "/src/dpp.min.js",
+  "exports": {
+    ".": "/src/dpp.js",
+    "./idb_handlers": "/src/idb_handlers"
+    "./db": "/db"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robtweed/DPP.git"
+  },
+  "author": "Rob Tweed, M/Gateway Developments Ltd",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "qoper8=ww": "",
+  },
+  "bugs": {
+    "url": "https://github.com/robtweed/DPP/issues"
+  },
+  "homepage": "https://github.com/robtweed/DPP#readme"
+}
