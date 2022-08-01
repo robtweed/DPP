@@ -2,20 +2,22 @@
 
   console.log('LIST Store Using DPP');
 
-  const {LIST} = await import('https://robtweed.github.io/DPP/db/list-store/dpp-list.min.js');
-
-  //const {QOper8} = await import('./QOper8.js');
+  
+  //const {QOper8} = await import('./QOper8.min.js');
+  //const {DPP} = await import('./dpp.min.js');
   //const {LIST} = await import('./dpp-list.js');
+  
+
+  const {LIST} = await import('https://robtweed.github.io/DPP/db/list-store/dpp-list.min.js');
 
   let myList = await LIST.start({
     storeName: 'myList',
-    index: {
-      props: ['foo', 'hello'],
-      transforms: ['toLowerCase', 'removePunctuation']
-    },
-    //QOper8: QOper8,
     //logging: true,
+    //DPP: DPP,
+    //QOper8: QOper8,
     //qOptions: {
+    //  handlerPath: '/dpp/js/idb_handlers',
+    //  workerLoaderPath: '/dpp/js/'
     //  logging: true
     //},
   });

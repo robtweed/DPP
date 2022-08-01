@@ -372,12 +372,20 @@ persisted:
 
 With DPP, you now, in effect, have a JSON database at your disposal within your browser!
 
-The hierarchical nature of JSON means that you can, in effect, model any other kind of database using it.
+With DPP, JavaScript Objects are no longer an ephemeral, in-memory data structure.  DPP will persist them in the *indexedDB* database for you, but, as far as you're concerned, you're just using plain old standard JavaScript Objects/JSON.
 
-With DPP, JSON is no longer an ephemeral, in-memory data structure.  It's persisted in the *indexedDB* database
-for you, but, as far as you're concerned, you're just using standard JSON.
+Their hierarchical nature means that you can, in effect, model any other kind of database using it.  By way of example, you'll find [included in this repository's */db* folder](./db) pre-built examples of two such NoSQL database models using DPP:
 
-Now let your imagination run wild!
+- [Key/Value Store](./db/key-value-store)
+- [Redis-like List](./db/list-store)
+
+You can read more about these NoSQL stores that you can use within a browser here:
+
+- [Key/Value Store](./KV.md)
+- Redis-like List (To follow soon!)
+
+
+Of course, these are just two simple examples.  There's nothing to stop people using DPP to design other, more complex database models on top of plain old JavaScript Objects/JSON, eg a Graph database or even a Relational one.
 
 **Enjoy DPP!**.
 

@@ -55,8 +55,15 @@ let KV = class {
     let QOper8 = options.QOper8;
     let qOptions = options.qOptions;
 
-    if (index && index.transforms) {
-      if (!Array.isArray(index.transforms)) index.transforms = [index.transforms];
+    if (index && !index.transforms && !index.props) index = false;
+
+    if (index) {
+      if (index.transforms) {
+        if (!Array.isArray(index.transforms)) index.transforms = [index.transforms];
+      }
+      if (index.props) {
+        if (!Array.isArray(index.props)) index.props = [index.props];
+      }
     }
 
     if (!options.DPP) {
@@ -82,7 +89,22 @@ let KV = class {
       obj.store.data = {};
       if (index) {
         obj.store.indexing = index;
-        obj.store.index = {};
+      }
+    }
+    else {
+      // if indexing has changed since the last time, re-index the key/value store
+      let newIndexing = JSON.stringify(index) || "false";
+      let oldIndexing = JSON.stringify(obj.store.indexing) || "false";
+      if (newIndexing !== oldIndexing) {
+        if (!index) {
+          delete obj.store.index;
+          delete obj.store.indexing;
+        }
+        else {
+          obj.store.indexing = index;
+          if (!index) delete obj.store.indexing;
+          obj.reIndex();
+        }
       }
     }
 
@@ -98,14 +120,18 @@ let KV = class {
           for (const name in value) {
             if (this.store.indexing.props.includes(name)) {
               let val = this.getIndexKey(value[name]);
-              results.push({
-                prop: name,
-                value: val
-              });
+              if (val) {
+                results.push({
+                  prop: name,
+                  value: val
+                });
+              }
             }
           }
+          if (results.length === 0) return false;
           return results;
         }
+        return false;
       }
       else {
         if (this.store.indexing.transforms) {
@@ -118,9 +144,12 @@ let KV = class {
       }
       return value;
     }
+    return false;
   }
 
   addIndex(indexKey, key, propName, callback) {
+
+    if (!this.store.index) this.store.index = {};
 
     if (typeof this.store.index[indexKey] === 'undefined') {
       this.store.index[indexKey] = {};
@@ -197,13 +226,19 @@ let KV = class {
   deleteIndex(indexKey, key, propName, callback) {
     if (propName) {
       delete this.store.index[indexKey][key][propName];
+      if (this.DPP.isEmpty(this.store.index[indexKey][key])) {
+        delete this.store.index[indexKey][key];
+      }
     }
     else {
       delete this.store.index[indexKey][key];
     }
+    if (this.DPP.isEmpty(this.store.index[indexKey])) {
+      delete this.store.index[indexKey];
+    }
   }
 
-  async delete(key, callback) {
+  delete(key, callback) {
     if (this.has(key)) {
       let indexKey = this.getIndexKey(this.get(key));
       if (indexKey) {
@@ -217,6 +252,14 @@ let KV = class {
         }
       }
       delete this.store.data[key];
+    }
+  }
+
+  reIndex() {
+    delete this.store.index;
+    for (const key in this.store.data) {
+      let value = this.get(key);
+       this.set(key, value);
     }
   }
 
