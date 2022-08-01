@@ -19,7 +19,7 @@
   "author": "Rob Tweed, M/Gateway Developments Ltd",
   "license": "Apache-2.0",
   "dependencies": {
-    "qoper8=ww": ""
+    "qoper8-ww": ""
   },
   "bugs": {
     "url": "https://github.com/robtweed/DPP/issues"
