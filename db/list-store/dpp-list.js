@@ -23,7 +23,7 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-31 July 2022
+1 August 2022
 
  */
 
@@ -34,7 +34,7 @@ let LIST = class {
 
   static async start(options) {
     let logging = options.logging || false;
-    let idb_name = options.idb_name || 'DPP';
+    let idb_name = options.idb_name;
     let storeName = options.storeName;
     let QOper8 = options.QOper8;
     let qOptions = options.qOptions;
@@ -46,6 +46,7 @@ let LIST = class {
 
     const obj = new LIST();
     let dpp = await options.DPP.create({
+      idb_name: idb_name,
       storeName: storeName,
       logging: logging,
       QOper8: QOper8,
@@ -53,8 +54,7 @@ let LIST = class {
     });
 
     obj.DPP = dpp;
-    dpp.start(storeName);
-    obj.store = await new dpp.persistAs(storeName).proxy();
+    obj.store = await dpp.start();
 
     // initialisation logic if this is a new persistent object
 

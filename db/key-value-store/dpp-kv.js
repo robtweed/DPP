@@ -23,7 +23,7 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-31 July 2022
+1 August 2022
 
  */
 
@@ -50,8 +50,7 @@ let KV = class {
 
     let index = options.index;
     let logging = options.logging || false;
-    let DPP = options.DPP;
-    let idb_name = options.idb_name || 'DPP';
+    let idb_name = options.idb_name;
     let storeName = options.storeName;
     let QOper8 = options.QOper8;
     let qOptions = options.qOptions;
@@ -60,8 +59,14 @@ let KV = class {
       if (!Array.isArray(index.transforms)) index.transforms = [index.transforms];
     }
 
+    if (!options.DPP) {
+      let {DPP} = await import('https://robtweed.github.io/DPP/src/dpp.min.js');
+      options.DPP = DPP;
+    }
+
     const obj = new KV();
-    let dpp = new DPP({
+    let dpp = await options.DPP.create({
+      idb_name: idb_name,
       storeName: storeName,
       logging: logging,
       QOper8: QOper8,
@@ -69,8 +74,7 @@ let KV = class {
     });
 
     obj.DPP = dpp;
-    dpp.start(storeName);
-    obj.store = await new dpp.persistAs(storeName).proxy();
+    obj.store = await dpp.start();
 
     // initialisation logic if this is a new persistent object
 
