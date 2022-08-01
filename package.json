@@ -6,7 +6,7 @@
   "browser": "/src/dpp.min.js",
   "exports": {
     ".": "/src/dpp.js",
-    "./idb_handlers": "/src/idb_handlers"
+    "./idb_handlers": "/src/idb_handlers",
     "./db": "/db"
   },
   "scripts": {
