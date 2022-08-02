@@ -97,13 +97,9 @@ You should now have the following files in your web server folder:
         - dpp.min.js
         - idb_handlers
           - delete.js
-          - delete.min.js
           - instantiate.js
-          - instantiate.min.js
           - put.js
-          - put.min.js
           - restore.js
-          - restore.min.js
 
 
 You can now load DPP directly from your Web Server, eg:
