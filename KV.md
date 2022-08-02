@@ -308,11 +308,7 @@ If you want to use local copies for the Key/Value store, QOper8 and DPP Modules,
             },
 
             DPP: DPP,
-            QOper8: QOper8,
-            qOptions: {
-              handlerPath: './dpp/idb_handlers/',
-              workerLoaderPath: './qoper8/'
-            }
+            QOper8: QOper8
 
           });
 

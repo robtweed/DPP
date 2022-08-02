@@ -148,8 +148,7 @@ Then start your DPP instance, which will also attach your local object to its co
 
 You're ready to start using your object!
 
-Note that this approach will use CDN versions of *QOper8*'s resources and also CDN versions of DPP's *QOper8* WebWorker handler modules.
-
+Note that this approach will use CDN versions of *QOper8*'s resources.
 
 ### Using a Local Copy of DPP
 
@@ -173,26 +172,6 @@ You can instantiate DPP as follows:
           storeName: storeName,
           idb_name: idb_name,    // optional, 'DPP' is the default
           QOper8: QOper8
-        });
-
-However, if started in this way, QOper8 will still load its Worker Loader Script from the *QOper8* CDN on Github, and also load the DPP WebWorker handler modules from the DPP CDN on Github.
-
-If you want to load everything using local copies, you need to do the following:
-
-        const {DPP} = await import('/dpp/dpp.min.js');
-        const {QOper8} = await import('/qoper8/QOper8.min.js');
-
-        let storeName = 'myObjCopy';
-        let idb_name = 'MY-DB';
-
-        let dpp = new DPP({
-          storeName: storeName,
-          idb_name: idb_name,
-          QOper8: QOper8,
-          qOptions: {
-            workerLoaderPath: '/qoper8/',
-            handlerPath: '/dpp/idb_handlers/'
-          }
         });
 
 
@@ -322,11 +301,7 @@ This time you'll find that the *indexedDB* Object Store (po_a) is cleared down a
         let dpp = new DPP({
           storeName: storeName,
           idb_name: idb_name,
-          QOper8: QOper8,
-          qOptions: {
-            workerLoaderPath: '/qoper8/',
-            handlerPath: '/dpp/idb_handlers/'
-          }
+          QOper8: QOper8
         });
 
 - Open/Start DPP and connect a local object to the *indexedDB* Database store
