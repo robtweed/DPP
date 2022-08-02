@@ -23,7 +23,7 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-1 August 2022
+2 August 2022
 
  */
 
@@ -53,7 +53,6 @@ let KV = class {
     let idb_name = options.idb_name;
     let storeName = options.storeName;
     let QOper8 = options.QOper8;
-    let qOptions = options.qOptions;
 
     if (index && !index.transforms && !index.props) index = false;
 
@@ -76,8 +75,7 @@ let KV = class {
       idb_name: idb_name,
       storeName: storeName,
       logging: logging,
-      QOper8: QOper8,
-      qOptions: qOptions
+      QOper8: QOper8
     });
 
     obj.DPP = dpp;

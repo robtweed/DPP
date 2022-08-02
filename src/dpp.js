@@ -23,9 +23,27 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-31 July 2022
+2 August 2022
 
  */
+
+  // For source of these handler scripts, see the /idb_handlers folder
+
+let handlerCode = new Map([
+  ['instantiate', `
+self.handler=async function(e,t){let r=this;const o=class{constructor(e){this.name=e}getObjectStore(e){return r.idb.db.transaction(this.name,e).objectStore(this.name)}iterate_db(e,t,r){let o;t||"function"!=typeof e||(t=e,e=null);let n="";e&&(o=IDBKeyRange.lowerBound(e),n=e.toString()+","),this.getObjectStore().openCursor(o).onsuccess=function(o){let i=o.target.result;if(i){let o=i.value;if(e){let e=o.id.toString()+",";""!==n&&e.startsWith(n)?(t&&t(o.id,o.value),i.continue()):r&&"function"==typeof r&&r()}else t&&t(o.id,o.value),i.continue()}else r&&"function"==typeof r&&r()}}iterate(e,t){t||"function"!=typeof e||(t=e,e=null);let r=this;return new Promise(o=>{r.iterate_db(e,t,function(){o()})})}async clearByKey(e){let t=this;await this.iterate(e,async function(e){await t.delete(e)})}clear_db(e){if(!_worker.idb.db)return e({error:"clear() Error: Database has not been opened"});let t=this.getObjectStore("readwrite").clear();t.onsuccess=function(){e({ok:!0})},t.onerror=function(){e({error:t.error})}}clear(){let e=this;return new Promise(t=>{e.clear_db(function(e){t(e)})})}put_item(e,t,o){if(!r.idb.db)return o({error:"addItem Error: Database has not been opened"});o||(o=t,t=e,e=null);let n=this.getObjectStore("readwrite").put(t);n.onsuccess=function(){r.emit("putCommitted",t),o({key:n.result})},n.onerror=function(){o({error:n.error})}}put(e,t){t||(t=e,e=null);let r=this;return new Promise(o=>{r.put_item(e,t,function(e){o(e)})})}delete_item(e,t){if(!r.idb.db)return t({error:"delete_item Error: Database has not been opened"});let o=this.getObjectStore("readwrite").delete(e);o.onsuccess=function(){r.emit("deleteCommitted",e),t({ok:!0})},o.onerror=function(){t({error:o.error})}}delete(e){let t=this;return new Promise(r=>{t.delete_item(e,function(e){r(e)})})}};function n(e,t){let o={};t?o.keyPath=t:o.autoIncrement=!0,r.idb.objectStores.set(e,o)}function i(e,t){if(!r.idb.store)return t({error:"Open Database Error: Store Name not defined"});t||(t=e,e=null);let n=indexedDB.open(r.idb.store,e);n.onsuccess=function(e){r.idb.db=e.target.result,r.emit("databaseOpen",r.idb.db),t({db:r.idb.db})},n.onerror=function(e){t({error:e.target.errorCode})},n.onupgradeneeded=function(e){r.idb.db=e.target.result,function(){if(r.idb)for(const[e,t]of r.idb.objectStores.entries())r.idb.db.objectStoreNames.contains(e)||(r.idb.db.createObjectStore(e,t),r.idb.stores[e]||(r.idb.stores[e]=new o(e)))}()}}async function s(e){return new Promise(t=>{i(e,function(e){t(e)})})}r.idb||(this.idb={objectStores:new Map,stores:{},store:e.idb_name});let d=e.objectStores||[];for(const e of d)n(e,"id");await s();let a=!1;for(const e of r.idb.objectStores.keys())r.idb.db.objectStoreNames.contains(e)||(a=!0),r.idb.stores[e]=new o(e);if(a){let e=r.idb.db.version+1;r.idb.db.close(),await s(e),r.emit("databaseReady"),t({db_ready:!0})}else this.emit("databaseReady"),t({db_ready:!0})};
+  `],
+  ['restore', `
+self.handler=async function(e,t){let a={},r=this;if(r.idb&&r.idb.db){let i=e.storeName;r.idb.storeName=e.storeName,await r.idb.stores[i].iterate(function(e,t){var r=a;let i;e.forEach(function(a,s){let o=!1;if(Array.isArray(a)&&(o=!0,a=+a[0]),0===s&&(i=a),s===e.length-1)r[a]=t;else{let t=e[s+1];Array.isArray(t)?void 0===r[a]&&(r[a]=[]):void 0===r[a]&&(r[a]={}),r=r[a]}})}),t({obj:a})}else t({error:"Database not instantiated"})};
+  `],
+  ['put', `
+self.handler=async function(e,a){let t=this;if(t.idb&&t.idb.db){let i=e.key,l=e.value,s=t.idb.stores[t.idb.storeName];await s.clearByKey(i);let d={id:i,value:l};await s.put(d),a({ok:!0})}else a({error:"Database not instantiated"})};
+  `],
+  ['delete', `
+self.handler=async function(e,t){let a=this;if(a.idb&&a.idb.db){let i=e.key,s=a.idb.stores[a.idb.storeName];await s.clearByKey(i),t({ok:!0})}else t({error:"Database not instantiated"})};
+  `]
+]);
+
 
 let DPP = class {
   constructor(options) {
@@ -36,32 +54,25 @@ let DPP = class {
     let storeName = options.storeName || 'DPP_Store';
 
     this.name = 'DPP-Q';
-    this.build = '2.1';
-    this.buildDate = '31 July 2022';
+    this.build = '2.2';
+    this.buildDate = '2 August 2022';
     this.listeners = new Map();
     this.logging = logging || false;
     this.storeName = storeName;
     this.idb_name = idb_name;
 
-    let qHandlerPath = qOptions.handlerPath || 'https://robtweed.github.io/DPP/src/idb_handlers/';
-    if (qHandlerPath.charAt(qHandlerPath.length - 1) !== '/') qHandlerPath = qHandlerPath + '/';
-    let qWorkerPath = qOptions.workerLoaderPath || 'https://robtweed.github.io/QOper8/src/';
-    if (qWorkerPath.charAt(qWorkerPath.length - 1) !== '/') qWorkerPath = qWorkerPath + '/';
-
     this.QOper8 = new QOper8({
       poolSize: 1,
-      workerLoaderUrl: qWorkerPath + 'QOper8Worker.min.js',
       logging: qOptions.logging,
-      handlersByMessageType: new Map([
-        ['instantiate', qHandlerPath + 'instantiate.min.js'],
-        ['restore', qHandlerPath + 'restore.min.js'],
-        ['put', qHandlerPath + 'put.min.js'],
-        ['delete', qHandlerPath + 'delete.min.js']
-      ]),
       workerInactivityCheckInterval: qOptions.workerInactivityCheckInterval || 60,
       workerInactivityLimit: qOptions.workerInactivityLimit || 60
     });
 
+    let handlersByMessageType = new Map();
+    for (const [key, value] of handlerCode) {
+      handlersByMessageType.set(key, this.QOper8.createUrl(value));
+    }
+    this.QOper8.handlersByMessageType = handlersByMessageType;
     let dpp = this;
 
     this.deepProxy = class {
