@@ -128,14 +128,14 @@ Optionally you can specify an *indexedDB* database name.  By default, DPP will a
 
 Now instantiate an instance of DPP for your object:
 
-        const {DPP} = await import('/dpp/dpp.min.js');
+        const {DPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp.min.js');
 
         let dpp = await DPP.create({
           storeName: storeName,
           idb_name: idb_name
         });
 
-As noted above, if you didn't provide an *idb_name* property, DPP would use an *indexedDB* database name of *DPP*.
+As noted above, if you don't provide an *idb_name* property, DPP will use an *indexedDB* database name of *DPP*.
 
 
 Then start your DPP instance, which will also attach your local object to its corresponding copy in *indexedDB*:
