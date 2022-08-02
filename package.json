@@ -1,13 +1,12 @@
 {
   "name": "dpp-db",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Deep Persistent Proxy: Persistent Objects in your Browser",
+  "type": "module",
   "main": "/src/dpp.js",
   "browser": "/src/dpp.min.js",
   "exports": {
-    ".": "/src/dpp.js",
-    "./idb_handlers": "/src/idb_handlers",
-    "./db": "/db"
+    ".": "./src/dpp.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
