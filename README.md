@@ -111,6 +111,12 @@ You can now load DPP directly from your Web Server, eg:
 
       const {DPP} = await import('/dpp/dpp.min.js');
 
+### From NPM
+
+DPP is available on NPM:
+
+        npm install dpp-db
+
 
 ## Starting DPP
 
@@ -382,8 +388,7 @@ Their hierarchical nature means that you can, in effect, model any other kind of
 You can read more about these NoSQL stores that you can use within a browser here:
 
 - [Key/Value Store](./KV.md)
-- Redis-like List (To follow soon!)
-
+- [Redis-like List](./LIST.md)
 
 Of course, these are just two simple examples.  There's nothing to stop people using DPP to design other, more complex database models on top of plain old JavaScript Objects/JSON, eg a Graph database or even a Relational one.
 

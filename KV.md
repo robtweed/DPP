@@ -1,6 +1,6 @@
 # A Key/Value Store Implemented Using DPP
 
-An example of a Key/Value store (actually, a Key/Object store) is [included in the DPP repository](./db/key-value/store).
+An example of a Key/Value store (actually, a Key/Object store) is [included in the DPP repository](./db/key-value-store).
 
 You can either use it "right out of the box", or use it as the starting point for your own experimentation with DPP.
 

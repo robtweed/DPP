@@ -69,6 +69,7 @@ let LIST = class {
   }
 
   rpush(obj) {
+    if (!obj) return false;
     let list = this.store;
     let isNew = (list.count === 0);
     let ix = list.nextNodeNo + 1;
@@ -92,6 +93,7 @@ let LIST = class {
   }
 
   lpush(obj) {
+    if (!obj) return false;
     let list = this.store;
     let isNew = (list.count === 0);
     let ix = list.nextNodeNo + 1;
@@ -309,13 +311,18 @@ let LIST = class {
   }
 
   insertBefore(obj, memberNo) {
+    if (!obj) return false;
+    if (!memberNo) return this.lpush(obj);
+
     let list = this.store;
 
     if (this.DPP.isEmpty(list)) {
-      return false;
+      return this.rpush(obj);
     }
     let beforeIx = this.getMemberId(memberNo);
-    if (!beforeIx) return false;
+    if (!beforeIx) {
+      return this.rpush(obj);
+    }
 
     let ix = list.nextNodeNo + 1;
     list.nextNodeNo = ix;
@@ -367,6 +374,12 @@ let LIST = class {
       nodeId = getNextNode(nodeId);
     }
     return foundId;
+  }
+
+  clear() {
+    let from = this.length + 1;
+    this.ltrim(from, -1);
+    this.store.nextNodeNo = 0;
   }
 
   dump() {

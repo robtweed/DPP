@@ -1,6 +1,6 @@
 {
   "name": "dpp-db",
-  "version": "2.1.0",
+  "version": "2.1.2",
   "description": "Deep Persistent Proxy: Persistent Objects in your Browser",
   "main": "/src/dpp.js",
   "browser": "/src/dpp.min.js",
