@@ -6,10 +6,11 @@
   //const {QOper8} = await import('./QOper8.min.js');
   //const {DPP} = await import('./dpp.min.js');
   //const {KV} = await import('./dpp-kv.js');
+  //const {createKV} = await import('./dpp-kv_browser.js');
 
-  const {KV} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-kv.min.js');
+  const {createKV} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-kv_browser.js');
 
-  let tel = await KV.start({
+  let tel = await createKV({
     storeName: 'telephone',
     index: {
       props: ['foo', 'hello'],
@@ -19,8 +20,6 @@
     //DPP: DPP,
     //QOper8: QOper8,
     //qOptions: {
-    //  handlerPath: '/dpp/js/idb_handlers',
-    //  workerLoaderPath: '/dpp/js/'
     //  logging: true
     //},
   });

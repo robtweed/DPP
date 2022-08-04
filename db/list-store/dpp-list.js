@@ -23,7 +23,7 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-2 August 2022
+4 August 2022
 
  */
 
@@ -34,21 +34,14 @@ let LIST = class {
 
   static async start(options) {
     let logging = options.logging || false;
-    let idb_name = options.idb_name;
-    let storeName = options.storeName;
-    let QOper8 = options.QOper8;
-
-    if (!options.DPP) {
-      let {DPP} = await import('https://robtweed.github.io/DPP/src/dpp.min.js');
-      options.DPP = DPP;
-    }
 
     const obj = new LIST();
-    let dpp = await options.DPP.create({
-      idb_name: idb_name,
-      storeName: storeName,
+    let dpp = new options.DPP({
+      idb_name: options.idb_name,
+      storeName: options.storeName,
       logging: logging,
-      QOper8: QOper8
+      QOper8: options.QOper8,
+      qOptions: options.qOptions
     });
 
     obj.DPP = dpp;
@@ -62,7 +55,7 @@ let LIST = class {
       obj.store.node = {};
     }
 
-    obj.storeName = storeName;
+    obj.storeName = options.storeName;
     return obj;
   }
 

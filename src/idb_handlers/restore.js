@@ -25,11 +25,11 @@
 
 QOper8 WebWorker for DPP: Restore the object from IndexDB, if it exists
 
-31 July 2022
+3 August 2022
 
  */
 
-export async function handler(obj, finished) {
+self.handler = async function (obj, finished) {
 
   let ref = {};
   let worker = this;
@@ -38,34 +38,41 @@ export async function handler(obj, finished) {
 
     let storeName = obj.storeName;
     worker.idb.storeName = obj.storeName;
-    await worker.idb.stores[storeName].iterate(function(key, value) {
-      var o = ref;
-      let key1;
-      key.forEach(function(prop, index) {
-        let isArr = false;
-        if (Array.isArray(prop)) {
-          isArr = true;
-          prop = +prop[0];
-        }
-        if (index === 0) {
-          key1 = prop;
-        }
-        if (index === (key.length - 1)) {
-          o[prop] = value;
-        }
-        else {
-          let nextKey = key[index + 1];
-          if (Array.isArray(nextKey)) {
-            if (typeof o[prop] === 'undefined') o[prop] = [];
+
+    if (obj.clear) {
+      await worker.idb.stores[storeName].iterate(async function(key, value) {
+        await worker.idb.stores[storeName].clearByKey(key);
+      });
+    }
+    else {
+      await worker.idb.stores[storeName].iterate(function(key, value) {
+        var o = ref;
+        let key1;
+        key.forEach(function(prop, index) {
+          let isArr = false;
+          if (Array.isArray(prop)) {
+            isArr = true;
+            prop = +prop[0];
+          }
+          if (index === 0) {
+            key1 = prop;
+          }
+          if (index === (key.length - 1)) {
+            o[prop] = value;
           }
           else {
-            if (typeof o[prop] === 'undefined') o[prop] = {};
+            let nextKey = key[index + 1];
+            if (Array.isArray(nextKey)) {
+              if (typeof o[prop] === 'undefined') o[prop] = [];
+            }
+            else {
+              if (typeof o[prop] === 'undefined') o[prop] = {};
+            }
+            o = o[prop];
           }
-          o = o[prop];
-        }
+        });
       });
-    });
-
+    }
     finished({
       obj: ref
     });

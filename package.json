@@ -1,12 +1,17 @@
 {
   "name": "dpp-db",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Deep Persistent Proxy: Persistent Objects in your Browser",
   "type": "module",
   "main": "/src/dpp.js",
   "browser": "/src/dpp.min.js",
   "exports": {
-    ".": "./src/dpp.js"
+    ".": "./src/dpp.js",
+    "./node": "./src/dpp_node.js",
+    "./createKV": "./db/key-value-store/dpp-kv_node.js",
+    "./KV": "./db/key-value-store/dpp-kv.js",
+    "./createLIST": "./db/list-store/dpp-list_node.js",
+    "./LIST": "./db/list-store/dpp-list.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

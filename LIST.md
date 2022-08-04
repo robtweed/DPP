@@ -32,10 +32,10 @@ Next, we'll create the *list.js* module that the page above will load.  For simp
         (async () => {
         
           console.log('Redis-like List Store Using DPP');
+
+          const {createLIST} = await import('https://robtweed.github.io/DPP/db/list-store/dpp-list_browser.js');
         
-          const {LIST} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-list.min.js');
-        
-          let myList = await LIST.start({
+          let myList = await createLIST({
             storeName: 'demo-list'
           });
 
@@ -121,9 +121,9 @@ In the example below, I'm using a simple function to generate the contents of ea
         
           console.log('Redis-like List Store Using DPP');
         
-          const {LIST} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-list.min.js');
+          const {createLIST} = await import('https://robtweed.github.io/DPP/db/list-store/dpp-list_browser.js');
         
-          let myList = await LIST.start({
+          let myList = await createLIST({
             storeName: 'demo-list'
           });
 
@@ -197,20 +197,21 @@ Try repeatedly running this.  You'll see that each time you run it, the List is 
 
 # Advanced Instantiation of the List Store
 
-The example shown above used a copy of the DPP List Store module from this Github repository.  It will have also used copies from Github for *QOper8* and *DPP*.
+The example shown above used a copy of the DPP LIST Store creation module from this Github repository.  Behind the scenes, it will have also used copies from Github for the actual *LIST* class module, as well as *QOper8* and *DPP*.
 
 The example also used the default *indexedDB* database store name of "DPP".
 
-If you want to use local copies for the List store, QOper8 and DPP Modules, use the same options as documented for instantiating DPP itself, eg:
+## Using Local Copies of the Resources Used by the List Store
+
+If you want to use local copies for the List store, QOper8 and DPP Modules, use the same options as documented for instantiating DPP itself, but use the *LIST* module's *start* method:
 
 
-          const {LIST} = await import('./dpp/dpp-list.js');
-          const {DPP} = await import('./dpp/dpp.js');
-          const {QOper8} = await import('./qoper8/qoper8.js');
+          const {LIST} = await import('/path/to/dpp-kv.js');
+          const {DPP} = await import('/path/to/dpp.js');
+          const {QOper8} = await import('/path/to/qoper8.js');
 
           let myList = await LIST.start({
-            storeName: 'list-demo',
-
+            storeName: 'demo-list',
             DPP: DPP,
             QOper8: QOper8
 
@@ -219,10 +220,40 @@ If you want to use local copies for the List store, QOper8 and DPP Modules, use 
 To specify a different *indexedDB* database store name, use the *idb_name* property, eg:
 
           let myList = await LIST.start({
-            storeName: 'list-demo',
+            storeName: 'demo-list',
 
             idb_name: 'myIDBStore'
 
           });
 
+or, if using the *createLIST* module:
+
+          let myList = await createLIST({
+            storeName: 'demo-list',
+            idb_name: 'myIDBStore'
+          });
+
+
+## Using the List Store with Node.js and NPM
+
+If you're building your front-end application using Node.js and WebPack (or equivalent), you need to use a slightly different approach.
+
+First, make sure that you've installed DPP:
+
+        npm install dpp-db
+
+
+Then use the following:
+
+        import {createLIST} from 'dbb-db/createLIST';
+
+          let myList = await createLIST({
+            storeName: 'demo-list',
+            idb_name: 'myIDBStore'
+          });
+
+        ...etc
+
+
+Behind the scenes, the *createLIST* module will import the *LIST*, *DPP* and *QOper8* modules from your *node_modules* folder.
 

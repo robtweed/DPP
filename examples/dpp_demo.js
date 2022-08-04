@@ -1,14 +1,15 @@
 (async () => {
 
-  const {DPP} = await import('../src/dpp.js');
+  const {createDPP} = await import('../src/dpp_browser.js');
 
-  let dpp = await DPP.create({
+  let dpp = await createDPP({
     storeName: 'po_a',
     logging: true,
     qOptions: {
       logging: true
     }
   });
+
   let a = await dpp.start();
 
   document.getElementById('content').innerText = JSON.stringify(a, null, 2);

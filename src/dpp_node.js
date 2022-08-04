@@ -1,5 +1,3 @@
-
-
 /*
  ----------------------------------------------------------------------------
  | DPP: Deep Persistent Proxy Objects for JavaScript                         |
@@ -24,28 +22,20 @@
  | See the License for the specific language governing permissions and       |
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
-QOper8 WebWorker for DPP: Delete the object record from IndexDB Database
-31 July 2022
+
+4 August 2022 
+
  */
 
-self.handler = async function(obj, finished) {
+import {DPP} from "dpp-db";
+import {QOper8} from "qoper8-ww";
 
-  let ref = {};
-  let worker = this;
+let createDPP = function(options) {
 
-  if (worker.idb && worker.idb.db) {
-    let key = obj.key;
-    let store = worker.idb.stores[worker.idb.storeName]
-    await store.clearByKey(key);      
+  options.DPP = DPP;
+  options.QOper8 = QOper8;
 
-    finished({
-     ok: true
-    });
-  }
-  else {
-    finished({
-     error: 'Database not instantiated'
-    });
-  }
-
+  return new options.DPP(options);
 };
+
+export {createDPP};

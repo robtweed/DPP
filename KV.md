@@ -26,16 +26,16 @@ To demonstrate its use, let's first create a simple HTML page:
 
 ## kv.js
 
-Next, we'll create the *kv.js* module that the page above will load.  For simplicity we'll load the DPP Key/Value Store module directly from its Github repository, but you can modify the code below to load your own local copy:
+Next, we'll create the *kv.js* module that the page above will load.  For simplicity we'll load the DPP Key/Value Store creation module directly from its Github repository, but you can modify the code below to load your own local copy:
 
 
         (async () => {
         
           console.log('Key/Value Store Using DPP');
         
-          const {KV} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-kv.min.js');
+          const {createKV} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-kv_browser.js');
         
-          let tel = await KV.start({
+          let tel = await createKV({
             storeName: 'telephone'
           });
 
@@ -54,8 +54,8 @@ For example:
 
         (async () => {
           console.log('Key/Value Store Using DPP');
-          const {KV} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-kv.min.js');
-          let tel = await KV.start({
+          const {createKV} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-kv_browser.js');
+          let tel = await createKV({
             storeName: 'telephone'
           });
 
@@ -90,8 +90,8 @@ Now, of course, if we rerun the example, it should first recover the saved Key/V
 
         (async () => {
           console.log('Key/Value Store Using DPP');
-          const {KV} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-kv.min.js');
-          let tel = await KV.start({
+          const {createKV} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-kv_browser.js');
+          let tel = await createKV({
             storeName: 'telephone'
           });
 
@@ -129,8 +129,8 @@ At this stage, let's take a look at the basic APIs that are provided for you:
 
         (async () => {
           console.log('Key/Value Store Using DPP');
-          const {KV} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-kv.min.js');
-          let tel = await KV.start({
+          const {createKV} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-kv_browser.js');
+          let tel = await createKV({
             storeName: 'telephone'
           });
 
@@ -167,7 +167,7 @@ The value of a Key/Value store is significantly enhanced if it is possible to se
 
 If you are only going to store records with scalar (ie non-object) values, then you can enable indexing by adding the *index* property when you instantiate the Key/Value store, eg:
 
-          let tel = await KV.start({
+          let tel = await createKV({
             storeName: 'telephone',
             index: true
           });
@@ -211,7 +211,7 @@ For example, we added the following record earlier:
 
 Suppose we want to add lots of similar values, and index the *lastName* property.  To do so, instantiate the Key/Value store as follows:
 
-          let tel = await KV.start({
+          let tel = await createKV({
             storeName: 'telephone',
             index: {
               props: 'lastName'
@@ -220,7 +220,7 @@ Suppose we want to add lots of similar values, and index the *lastName* property
 
 If you wanted to also index the firstName values:
 
-          let tel = await KV.start({
+          let tel = await createKV({
             storeName: 'telephone',
             index: {
               props: ['firstName', 'lastName']
@@ -236,7 +236,7 @@ This means that you can search for values for *Rob* using *Rob* or *rob* or any 
 
 The Key/Value store provides a number of such commonly used transforms that you can specify in your index instantiation.  Simply add the *transforms* key to the *index* property, eg:
 
-          let tel = await KV.start({
+          let tel = await createKV({
             storeName: 'telephone',
             index: {
               transforms: 'toLowerCase'
@@ -245,7 +245,7 @@ The Key/Value store provides a number of such commonly used transforms that you 
 
 or to apply multiple transforms:
 
-          let tel = await KV.start({
+          let tel = await createKV({
             storeName: 'telephone',
             index: {
               transforms: ['toLowerCase', 'removePunctuation']
@@ -290,16 +290,18 @@ For example:
 
 # Advanced Instantiation of the Key/Value Store
 
-The example shown above used a copy of the DPP Key/Value Store module from this Github repository.  It will have also used copies from Github for *QOper8* and *DPP*.
+The example shown above used a copy of the DPP Key/Value Store creation module from this Github repository.  Behind the scenes, it will have also used copies from Github for the actual *KV* class module, as well as *QOper8* and *DPP*.
 
 The example also used the default *indexedDB* database store name of "DPP".
 
-If you want to use local copies for the Key/Value store, QOper8 and DPP Modules, use the same options as documented for instantiating DPP itself, eg:
+## Using Local Copies of the Resources Used by the Key/Value Store
+
+If you want to use local copies for the Key/Value store, QOper8 and DPP Modules, use the same options as documented for instantiating DPP itself, and then use the *KV* module's *start* method:
 
 
-          const {KV} = await import('./dpp/dpp-kv.js');
-          const {DPP} = await import('./dpp/dpp.js');
-          const {QOper8} = await import('./qoper8/qoper8.js');
+          const {KV} = await import('/path/to/dpp-kv.js');
+          const {DPP} = await import('/path/to/dpp.js');
+          const {QOper8} = await import('/path/to/qoper8.js');
 
           let tel = await KV.start({
             storeName: 'telephone',
@@ -324,4 +326,29 @@ To specify a different *indexedDB* database store name, use the *idb_name* prope
 
           });
 
+
+## Using the Key/Value Store with Node.js and NPM
+
+If you're building your front-end application using Node.js and WebPack (or equivalent), you need to use a slightly different approach.
+
+First, make sure that you've installed DPP:
+
+        npm install dpp-db
+
+
+Then use the following:
+
+        import {createKV} from 'dbb-db/createKV';
+
+        let tel = await createKV({
+          storeName: 'telephone',
+          index: {
+            transforms: ['toLowerCase', 'removePunctuation']
+          }
+        });
+
+        ...etc
+
+
+Behind the scenes, the *createKV* module will import the *KV*, *DPP* and *QOper8* modules from your *node_modules* folder.
 

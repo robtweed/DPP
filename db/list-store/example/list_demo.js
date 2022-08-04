@@ -2,9 +2,9 @@
         
           console.log('Redis-like List Store Using DPP');
         
-          const {LIST} = await import('https://robtweed.github.io/DPP/db/key-value-store/dpp-list.min.js');
+          const {createLIST} = await import('https://robtweed.github.io/DPP/db/list-store/dpp-list_browser.js');
 
-          let myList = await LIST.start({
+          let myList = await createLIST({
             storeName: 'demo-list'
           });
 
