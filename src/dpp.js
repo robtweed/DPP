@@ -23,7 +23,7 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-3 August 2022 
+5 August 2022 
 
  */
 
@@ -54,8 +54,8 @@ let DPP = class {
     let storeName = options.storeName || 'DPP_Store';
 
     this.name = 'DPP-Q';
-    this.build = '2.3';
-    this.buildDate = '3 August 2022';
+    this.build = '2.4';
+    this.buildDate = '5 August 2022';
     this.listeners = new Map();
     this.logging = logging || false;
     this.storeName = storeName;
@@ -270,15 +270,6 @@ let DPP = class {
       
       }
     };
-  }
-
-  static async create(options) {
-    if (!options.QOper8) {
-      let {QOper8} = await import('https://robtweed.github.io/QOper8/src/QOper8.min.js');
-      options.QOper8 = QOper8;
-    }
-    let dpp = new DPP(options);
-    return dpp;
   }
 
   async start(mode) {
