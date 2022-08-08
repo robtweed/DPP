@@ -444,6 +444,76 @@ persisted, because you'll overwrite the Proxy Object:
       a.obj = {hello: 'world};    
 
 
+- Although *indexedDB* is capable of storing very large volumes of data, you need to be aware that the first thing that happens when you re-load a DPP script is that the entire contents of the *indexedDB* store that holds the copy of your local object must be traversed in order to be retrieved.  Whilst this occurs very quickly for small or reasonably-sized objects, clearly the larger your object, the more time DPP will take to recover your object from *indexedDB*.
+
+  We therefore recommend that DPP is used for small persistent objects.  You should probably run some benchmark tests to confirm the speed of retrieval of typical instances of the objects you wish to use with DPP.
+
+- You need to be aware that different browsers have different policies for the retention times of data held in *indexedDB*.  [This document from the authors of the Dexie *indexedDB* wrapper](https://dexie.org/docs/StorageManager) is quite helpful, and applies equally to data you store in *indexedDB* using DPP.
+
+
+## Secure/Encrypted Persistent Storage
+
+### Background
+
+You've probably realised that by default, DPP stores its keys and data into *indexedDB* as clear text.  This will often be quite satisfactory for many needs.
+
+In terms of data security, you need to also understand that like all local storage within a browser, *indexedDB* is completely accessible by the user of the browser: it can be inspected using the browser's Developer Tools and can also be deleted using the Developer Tools.
+
+The APIs for accessing and maintaining each *indexedDB* database and the stores within it are only accessible to scripts that run in the same origin.  In other words, an *indexedDB* database created in your browser when accessing one web application at one endpoint will not be accessible to scripts running in another session on your browser that accesses and uses a different web application and endpoint.
+
+However, if your front-end code is using third-party JavaScript scripts, you need to be aware that those scripts potentially have full and unfettered access to any *indexedDB* databases, even if you loaded those scripts from a different origin.  This means that a rogue third-party script could potentially access, use and even modify all the data in your *indexedDB* database at that origin!
+
+### DPP's Optional Encryption
+
+As a means of helping to mitigate at least the latter risk, DPP includes a mechanism for encrypting the data (though not the keys) for records held in *indexedDB*.
+
+To use DPP in this way, you need to supply two secret credentials to DPP's *start()* API.  These are ostensibly known as *username* and *password*, but are really just two pieces of secret information that you supply when starting DPP, eg:
+
+        let my_local_object = await dpp.start({
+          auth: {
+            username: secret_1,
+            password: secret_2
+          }
+        });
+
+Of course you don't want these secret credentials to be available to any third-party scripts, so you should invoke this authenticated startup of DPP within a closure.  You'd also not want to hard-code the values of the credentials into your code, but ask for them from the user or acquire them in some other secure way that was also unavailable to a third-party script.  If you hard code the secret values into a script used in your front-end code, then they will be visible to the user simply by viewing the script code.
+
+When started with authentication, DPP has privileged access to these credentials, but does not expose them outside of its own internal closures (both within the main DPP process and its QOper8 Worker process).  
+
+You'll discover that that *indexedDB* datastore you use for mirroring your local object will now have a record stored with a key of *['signature']*.  This is an HMAC-SHA256 hash value derived from the username and password secrets and is used only to denote ownership to DPP of the database.  It is **NOT** used as an encryption/decryption key.  
+
+The actual encryption/decryption key is known only to DPP and the DPP QOper8 Worker handler method, and is derived from the specified authentication credentials.  The *indexedDB* database does not, therefore, hold any information that can be used as a clue for decrytping its contents.
+
+Once started in this way, the data values of any records you create in your local object are AES-GCM encrypted before they are stored in *indexedDB*.
+
+When you invoke the *start()* API with authentication, any data stored in the *indexedDB* store will be decrypted before retrieval, so your local object will be in plain text.  Once again, the key to protection from a rogue third-party script will be to maintain your local object from within a closure to which any third-party scripts do not have access.
+
+
+### Notices and Limitations
+
+#### Notices
+
+**M/Gateway Developments Ltd does not provide any warranty with respect to the security provisions implemented in DPP.  You use its authenticated access entirely at your own risk, and it is your responsibility to conduct your own security audit of its operations to confirm its fitness for purpose in your applications.  Your use of DPP is subject to the terms and conditions of its Apache 2.0 License (see below).**
+
+With respect to any audit you conduct, you should note that all of the source code used by DPP and QOper8 is provided in full within their respective Github repositories, and you should also note that neither DPP nor QOper8 use or rely upon any third-party code.  They only rely upon the native capabilities provided by the browser's JavaScript run-time environment.
+
+#### Limitations
+
+You need to be aware of a number of limitations to the security provided by DPP.
+
+- if you allow your local object or the security credentials to be accessible to any third-party scripts, then they will potentially have full access to its data.  Make use of JavaScript closures to prevent this.  If you do not know how to use JavaScript closures, please seek advice before attempting to use DPP in a secure way.
+
+- The user of the browser will still be able to delete the *indexedDB* store via its Developer Tools.  They will not, however, be able to see anything other than the encrypted data values within the store and should not be able to decrypt its contents.
+
+- DPP only encrypts the **data values** stored for each key in your local object.  If you create indices from any data values and store them as keys in your local object, those values will be **visible** in the *indexedDB* store.
+
+- OWnership of, and therefore access by DPP to, an authenticated/encrypted store is determined by the two secret values supplied when it was first started (ie *username* and *password*).  You cannot change either the username or password: if you do so, you will lose access via DPP to the store.
+
+- If you started DPP without authentication, the specified *indexedDB* store can only be re-accessed without authentication and DPP will store its data in *indexedDB* in the clear.
+
+- Conversely, if you started DPP with authentication, the specified *indexedDB* store will be encrypted, and cannot be re-accessed without providing the correct authentication credentials.
+
+
 ## The JSON Database
 
 With DPP, you now, in effect, have a JSON database at your disposal within your browser!

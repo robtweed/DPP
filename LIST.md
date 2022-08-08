@@ -257,3 +257,20 @@ Then use the following:
 
 Behind the scenes, the *createLIST* module will import the *LIST*, *DPP* and *QOper8* modules from your *node_modules* folder.
 
+# Using DPP's Authenticated Access With the List Store
+
+You can apply DPP's optional authenticated access when using the List store.
+
+Simply add the appropriate authentication credentials when accessing/re-accessing the List Store, eg:
+
+        let myList = await createLIST({
+          storeName: 'demo-list',
+          auth: {
+            username: secret_1,
+            password: secret_2
+          }
+        });
+
+The data values for all the keys of your local object will be encrypted into the *indexedDB* copy.
+
+

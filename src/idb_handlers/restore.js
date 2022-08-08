@@ -25,53 +25,71 @@
 
 QOper8 WebWorker for DPP: Restore the object from IndexDB, if it exists
 
-3 August 2022
+7 August 2022
 
  */
 
 self.handler = async function (obj, finished) {
 
-  let ref = {};
+  let token_input = '';
+  if (obj.qoper8 && obj.qoper8.token) token_input = obj.qoper8.token;
+
+  function isEmpty(obj) {
+    for (const name in obj) {
+      return false;
+    }
+    return true;
+  }
+
   let worker = this;
 
   if (worker.idb && worker.idb.db) {
 
     let storeName = obj.storeName;
     worker.idb.storeName = obj.storeName;
+    let store = worker.idb.stores[storeName];
+
+    if (!store.isValidToken(token_input)) {
+      return finished({
+        error: 'Invalid access attempt'
+      });
+    }
+
+    let ref = {};
 
     if (obj.clear) {
-      await worker.idb.stores[storeName].iterate(async function(key, value) {
-        await worker.idb.stores[storeName].clearByKey(key);
+      await store.iterate(async function(key, value) {
+        await store.clearByKey(key, token_input);
       });
     }
     else {
-      await worker.idb.stores[storeName].iterate(function(key, value) {
-        var o = ref;
-        let key1;
-        key.forEach(function(prop, index) {
-          let isArr = false;
-          if (Array.isArray(prop)) {
-            isArr = true;
-            prop = +prop[0];
+      let count = await store.count();
+      if (count === 0 && store.isAuthenticated()) {
+        await store.setSignature(token_input);
+        store.setReady(token_input);
+      }
+      else {
+
+        // existing database - if we're coming in authenticated,
+        // see if we can get the authenticatedOwner record
+        //  if not, or if its value is different, return an error!
+        if (store.isAuthenticated()) {
+          let signature = await store.get(['signature']);
+          if (!signature) {
+            return finished({
+              error: 'The requested store is not encrypted, but you have supplied authentication credentials'
+            });
           }
-          if (index === 0) {
-            key1 = prop;
+          if (!store.isValidSignature(signature.value)) {
+            return finished({
+              error: 'Invalid authentication credentials for specified store'
+            });
           }
-          if (index === (key.length - 1)) {
-            o[prop] = value;
-          }
-          else {
-            let nextKey = key[index + 1];
-            if (Array.isArray(nextKey)) {
-              if (typeof o[prop] === 'undefined') o[prop] = [];
-            }
-            else {
-              if (typeof o[prop] === 'undefined') o[prop] = {};
-            }
-            o = o[prop];
-          }
-        });
-      });
+          store.setReady(token_input);
+        }
+        ref = await store.retrieve(token_input);
+        delete ref.signature;
+      }
     }
     finished({
       obj: ref

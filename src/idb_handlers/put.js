@@ -25,11 +25,14 @@
 
 QOper8 WebWorker for DPP: Save the object record to the IndexDB Database
 
-31 July 2022
+7 August 2022
 
  */
 
 self.handler = async function(obj, finished) {
+
+  let token_input = '';
+  if (obj.qoper8 && obj.qoper8.token) token_input = obj.qoper8.token;
 
   let ref = {};
   let worker = this;
@@ -38,14 +41,27 @@ self.handler = async function(obj, finished) {
 
     let key = obj.key;
     let value = obj.value;
-    let store = worker.idb.stores[worker.idb.storeName]
-    await store.clearByKey(key);
+    let store = worker.idb.stores[worker.idb.storeName];
+
+    if (!store.isValidToken(token_input)) {
+      return finished({
+        error: 'Invalid access attempt'
+      });
+    }
+
+    if (!store.isReady(token_input)) {
+      return finished({
+        error: 'Database not initialised for access'
+      });
+    }
+
+    await store.clearByKey(key, token_input);
 
     let data = {
       id: key,
       value: value
     };
-    await store.put(data);      
+    await store.put(data, undefined, token_input);
 
     finished({
      ok: true

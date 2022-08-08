@@ -23,7 +23,7 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-4 August 2022
+8 August 2022
 
  */
 
@@ -72,7 +72,13 @@ let KV = class {
     });
 
     obj.DPP = dpp;
-    obj.store = await dpp.start();
+    let opt;
+    if (options.auth) {
+      opt = {
+        auth: options.auth
+      }
+    }
+    obj.store = await dpp.start(opt);
 
     // initialisation logic if this is a new persistent object
 

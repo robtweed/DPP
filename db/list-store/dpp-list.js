@@ -23,7 +23,7 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-4 August 2022
+7 August 2022
 
  */
 
@@ -45,7 +45,14 @@ let LIST = class {
     });
 
     obj.DPP = dpp;
-    obj.store = await dpp.start();
+
+    let opt;
+    if (options.auth) {
+      opt = {
+        auth: options.auth
+      }
+    }
+    obj.store = await dpp.start(opt);
 
     // initialisation logic if this is a new persistent object
 
@@ -62,8 +69,8 @@ let LIST = class {
   rpush(obj) {
     if (!obj) return false;
     let list = this.store;
-    let isNew = (list.count === 0);
-    let ix = list.nextNodeNo + 1;
+    let isNew = (+list.count === 0);
+    let ix = +list.nextNodeNo + 1;
     list.nextNodeNo = ix;
     list.count++;
     if (!list.node) list.node = {};
@@ -86,8 +93,8 @@ let LIST = class {
   lpush(obj) {
     if (!obj) return false;
     let list = this.store;
-    let isNew = (list.count === 0);
-    let ix = list.nextNodeNo + 1;
+    let isNew = (+list.count === 0);
+    let ix = +list.nextNodeNo + 1;
     list.nextNodeNo = ix;
     list.count++;
     if (!list.node) this.store.node = {};
@@ -112,12 +119,13 @@ let LIST = class {
     if (this.DPP.isEmpty(list)) {
       return {};
     }
-    if (list.count === 0) return {};
+
+    if (+list.count === 0) return {};
 
     let ix = list.lastNode;
     if (!list.node[ix]) return {};
     let content = list.node[ix].content;
-    let count = list.count;
+    let count = +list.count;
     if (count === 1) {
       list.count = 0;
       list.nextNodeNo = 0;
@@ -141,12 +149,12 @@ let LIST = class {
     if (this.DPP.isEmpty(list)) {
       return {};
     }
-    if (list.count === 0) return {};
+    if (+list.count === 0) return {};
 
     let ix = list.firstNode;
     if (!list.node[ix]) return {};
     let content = list.node[ix].content;
-    let count = list.count;
+    let count = +list.count;
     if (count === 1) {
       list.count = 0;
       list.nextNodeNo = 0;
@@ -172,7 +180,7 @@ let LIST = class {
     if (this.DPP.isEmpty(list)) {
       return results;
     }
-    if (list.count === 0) return results;
+    if (+list.count === 0) return results;
 
     if (typeof from !== 'undefined' && typeof to === 'undefined') {
       to = from;
@@ -212,7 +220,7 @@ let LIST = class {
     if (this.DPP.isEmpty(list)) {
       return false;
     }
-    if (list.count === 0) return false;
+    if (+list.count === 0) return false;
 
     if (typeof from !== 'undefined' && typeof to === 'undefined') {
       to = from;
@@ -229,7 +237,7 @@ let LIST = class {
       let previx = list.node[ix].previousNode;
       let nextix = list.node[ix].nextNode;
       delete list.node[ix];
-      list.count = list.count - 1;
+      list.count = +list.count - 1;
 
       if (previx && nextix) {
         // deleted node was in the middle - link previous and next nodes
@@ -261,7 +269,7 @@ let LIST = class {
       let nextix = list.node[ix].nextNode;
       if (count < from) {
         deleteNode(ix);
-        if (list.count === 0) {
+        if (+list.count === 0) {
           // all nodes have been deleted
           return false;
         }
@@ -269,7 +277,7 @@ let LIST = class {
       }
       if (to !== -1 && count > to) {
         deleteNode(ix);
-        if (list.count === 0) {
+        if (+list.count === 0) {
           // all nodes have been deleted
           return false;
         }
@@ -290,11 +298,11 @@ let LIST = class {
   }
 
   count() {
-    return this.store.count;
+    return +this.store.count;
   }
 
   get length() {
-    return this.store.count;
+    return +this.store.count;
   }
 
   get isEmpty() {
@@ -315,9 +323,9 @@ let LIST = class {
       return this.rpush(obj);
     }
 
-    let ix = list.nextNodeNo + 1;
+    let ix = +list.nextNodeNo + 1;
     list.nextNodeNo = ix;
-    list.count = list.count + 1;
+    list.count = +list.count + 1;
     if (!list.node) this.store.node = {};
     list.node[ix] = {};
     list.node[ix].content = obj;
@@ -342,8 +350,8 @@ let LIST = class {
     if (this.DPP.isEmpty(list)) {
       return false;
     }
-    if (list.count === 0) return false;
-    if (list.count < memberNo) return false;
+    if (+list.count === 0) return false;
+    if (+list.count < memberNo) return false;
 
     let count = -1;
     let foundId = false;

@@ -352,3 +352,21 @@ Then use the following:
 
 Behind the scenes, the *createKV* module will import the *KV*, *DPP* and *QOper8* modules from your *node_modules* folder.
 
+
+# Using DPP's Authenticated Access With the Key/Value Store
+
+You can apply DPP's optional authenticated access when using the Key/Value store.
+
+Simply add the appropriate authentication credentials when accessing/re-accessing the Key/Value Store, eg:
+
+        let tel = await createKV({
+          storeName: 'telephone',
+          auth: {
+            username: secret_1,
+            password: secret_2
+          }
+        });
+
+The data values for all the keys of your local object will be encrypted into the *indexedDB* copy.
+
+Note that data values used within indices will appear in the clear in their respective *indexedDB* keys.

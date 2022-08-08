@@ -25,10 +25,15 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 QOper8 WebWorker for DPP: Delete the object record from IndexDB Database
-31 July 2022
+
+7 August 2022
+
  */
 
 self.handler = async function(obj, finished) {
+
+  let token_input = '';
+  if (obj.qoper8 && obj.qoper8.token) token_input = obj.qoper8.token;
 
   let ref = {};
   let worker = this;
@@ -36,7 +41,14 @@ self.handler = async function(obj, finished) {
   if (worker.idb && worker.idb.db) {
     let key = obj.key;
     let store = worker.idb.stores[worker.idb.storeName]
-    await store.clearByKey(key);      
+
+    if (!store.isValidToken(token_input)) {
+      return finished({
+        error: 'Invalid access attempt'
+      });
+    }
+
+    await store.clearByKey(key, token_input);      
 
     finished({
      ok: true
