@@ -355,7 +355,7 @@ Behind the scenes, the *createKV* module will import the *KV*, *DPP* and *QOper8
 
 # Using DPP's Authenticated Access With the Key/Value Store
 
-You can apply [DPP's optional authenticated access](./README.md#secureencrypted-persistent-storage) when using the Key/Value store.
+You can apply [DPP's optional authenticated access](./README.md#background) when using the Key/Value store.
 
 Simply add the appropriate authentication credentials when accessing/re-accessing the Key/Value Store, eg:
 

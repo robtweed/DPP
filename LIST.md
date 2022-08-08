@@ -259,7 +259,7 @@ Behind the scenes, the *createLIST* module will import the *LIST*, *DPP* and *QO
 
 # Using DPP's Authenticated Access With the List Store
 
-You can apply [DPP's optional authenticated access](./README.md#secureencrypted-persistent-storage) when using the List store.
+You can apply [DPP's optional authenticated access](./README.md#background) when using the List store.
 
 Simply add the appropriate authentication credentials when accessing/re-accessing the List Store, eg:
 
