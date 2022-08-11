@@ -424,6 +424,8 @@ the Proxy Object will be empty.  For example:
   - functions
   - classes
 
+- You must not create circular references within your Proxy Object.
+
 - Note that the base Proxy Object variable cannot be used as a simple variable, ie the following will not be
 persisted, because you'll overwrite the Proxy Object:
 
