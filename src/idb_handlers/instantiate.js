@@ -23,13 +23,11 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-7 August 2022 
+24 August 2022 
 
  */
 
 self.handler = async function(obj, finished) {
-
-  //export async function handler(obj, finished) {
 
   let worker = this;
   let token;
@@ -149,7 +147,7 @@ self.handler = async function(obj, finished) {
           value.value = await auth.encrypt(value.value);
         }
 
-        if (!worker.idb.db) {
+        if (!self.idb.db) {
           return callback({error: 'addItem Error: Database has not been opened'});
         }
         if (!callback) {
@@ -172,7 +170,7 @@ self.handler = async function(obj, finished) {
     }
 
     getObjectStore(mode) {
-      let transaction = worker.idb.db.transaction(this.name, mode);
+      let transaction = self.idb.db.transaction(this.name, mode);
       return transaction.objectStore(this.name);
     }
 
@@ -246,7 +244,7 @@ self.handler = async function(obj, finished) {
     }
 
     clear_db(callback) {
-      if (!_worker.idb.db) {
+      if (!self.idb.db) {
       return callback({error: 'clear() Error: Database has not been opened'});
       }
       let objectStore = this.getObjectStore('readwrite');
@@ -270,7 +268,7 @@ self.handler = async function(obj, finished) {
     }
 
     count_items(callback) {
-      if (!worker.idb.db) {
+      if (!self.idb.db) {
         return callback({error: 'count Error: Database has not been opened'});
       }
       let objectStore = this.getObjectStore('readonly');
@@ -310,7 +308,7 @@ self.handler = async function(obj, finished) {
     }
 
     get_item(key, callback) {
-      if (!worker.idb.db) {
+      if (!self.idb.db) {
         return callback({error: 'get_item Error: Database has not been opened'});
       }
       let objectStore = this.getObjectStore('readonly');
@@ -333,7 +331,7 @@ self.handler = async function(obj, finished) {
     }
 
     delete_item(key, callback) {
-      if (!worker.idb.db) {
+      if (!self.idb.db) {
         return callback({error: 'delete_item Error: Database has not been opened'});
       }
       let objectStore = this.getObjectStore('readwrite');
@@ -451,11 +449,11 @@ self.handler = async function(obj, finished) {
 
   function createObjectStores(authMethods) {
     // create any newly-defined object stores
-    if (worker.idb) {
-      for (const [key, value] of worker.idb.objectStores.entries()) {
-        if (!worker.idb.db.objectStoreNames.contains(key)) {
-          worker.idb.db.createObjectStore(key, value);
-          if (!worker.idb.stores[key]) worker.idb.stores[key] = new objectStore(key, authMethods);
+    if (self.idb) {
+      for (const [key, value] of self.idb.objectStores.entries()) {
+        if (!self.idb.db.objectStoreNames.contains(key)) {
+          self.idb.db.createObjectStore(key, value);
+          if (!self.idb.stores[key]) self.idb.stores[key] = new objectStore(key, authMethods);
         }
       }
     }
@@ -469,29 +467,29 @@ self.handler = async function(obj, finished) {
     else {
       props.autoIncrement = true;
     }
-    worker.idb.objectStores.set(name, props);
+    self.idb.objectStores.set(name, props);
   }
 
   function open_database(version, authMethods, callback) {
-    if (!worker.idb.store) {
+    if (!self.idb.store) {
       return callback({error: 'Open Database Error: Store Name not defined'});
     }
     if (!callback) {
       callback = version;
       version = null;
     }
-    let openRequest = indexedDB.open(worker.idb.store, version);
-    //let openRequest = indexedDB.open(worker.idb.store);
+    let openRequest = indexedDB.open(self.idb.store, version);
+    //let openRequest = indexedDB.open(self.idb.store);
     openRequest.onsuccess = function (evt) {
-      worker.idb.db = evt.target.result;
-      worker.emit('databaseOpen', worker.idb.db);
-      callback({db: worker.idb.db});
+      self.idb.db = evt.target.result;
+      worker.emit('databaseOpen', self.idb.db);
+      callback({db: self.idb.db});
     };
     openRequest.onerror = function (evt) {
       callback({error: evt.target.errorCode});
     };
     openRequest.onupgradeneeded = function (evt) {
-      worker.idb.db = evt.target.result;
+      self.idb.db = evt.target.result;
       createObjectStores(authMethods);
     };
   }
@@ -506,8 +504,8 @@ self.handler = async function(obj, finished) {
 
   // end of functions *****
 
-  if (!worker.idb) {
-    worker.idb = {
+  if (!self.idb) {
+    self.idb = {
       objectStores: new Map(),
       stores: {},
       store: obj.idb_name
@@ -561,15 +559,15 @@ self.handler = async function(obj, finished) {
   await open(undefined, authMethods);
   let upgradeNeeded = false;
 
-  for (const name of worker.idb.objectStores.keys()) {
-    if (!worker.idb.db.objectStoreNames.contains(name)) upgradeNeeded = true;
-    worker.idb.stores[name] = new objectStore(name, authMethods);
+  for (const name of self.idb.objectStores.keys()) {
+    if (!self.idb.db.objectStoreNames.contains(name)) upgradeNeeded = true;
+    self.idb.stores[name] = new objectStore(name, authMethods);
   }
 
   if (upgradeNeeded) {
     // re-open database as new version and add the new object stores
-    let newVersion = worker.idb.db.version + 1;
-    worker.idb.db.close();
+    let newVersion = self.idb.db.version + 1;
+    self.idb.db.close();
     await open(newVersion, authMethods);
     worker.emit('databaseReady');
     finished({

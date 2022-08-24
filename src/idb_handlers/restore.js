@@ -25,7 +25,7 @@
 
 QOper8 WebWorker for DPP: Restore the object from IndexDB, if it exists
 
-7 August 2022
+24 August 2022
 
  */
 
@@ -43,11 +43,11 @@ self.handler = async function (obj, finished) {
 
   let worker = this;
 
-  if (worker.idb && worker.idb.db) {
+  if (self.idb && self.idb.db) {
 
     let storeName = obj.storeName;
-    worker.idb.storeName = obj.storeName;
-    let store = worker.idb.stores[storeName];
+    self.idb.storeName = obj.storeName;
+    let store = self.idb.stores[storeName];
 
     if (!store.isValidToken(token_input)) {
       return finished({

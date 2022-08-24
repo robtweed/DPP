@@ -26,7 +26,7 @@
  ----------------------------------------------------------------------------
 QOper8 WebWorker for DPP: Delete the object record from IndexDB Database
 
-7 August 2022
+24 August 2022
 
  */
 
@@ -38,9 +38,9 @@ self.handler = async function(obj, finished) {
   let ref = {};
   let worker = this;
 
-  if (worker.idb && worker.idb.db) {
+  if (self.idb && self.idb.db) {
     let key = obj.key;
-    let store = worker.idb.stores[worker.idb.storeName]
+    let store = self.idb.stores[self.idb.storeName]
 
     if (!store.isValidToken(token_input)) {
       return finished({
