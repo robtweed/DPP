@@ -543,8 +543,8 @@ Of course, these are just two simple examples.  There's nothing to stop people u
  Banstead, Surrey UK,
  All rights reserved.
 
-  https://www.mgateway.com
-  Email: rtweed@mgateway.com
+  https://www.mgateway.com                                                  
+  Email: rtweed@mgateway.com  
 
 
   Licensed under the Apache License, Version 2.0 (the "License");
