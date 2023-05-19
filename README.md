@@ -1,6 +1,6 @@
 # DPP: Deep Persistent Proxy Objects for JavaScript
  
-Rob Tweed <rtweed@mgateway.com>
+Rob Tweed <rtweed@mgateway.com>  
 19 May 2023, MGateway Ltd [https://www.mgateway.com](https://www.mgateway.com)
 
 Twitter: @rtweed
