@@ -98,7 +98,7 @@ retrieval from IndexedDB.
 
 **NOTE:** You must use a modern browser that supports WebComponents to run this example!
 
-See the [*Golgi /examples/todo*](https://github.com/robtweed/golgi/examples/todo) folder for the source code
+See the [*Golgi /examples/todo*](https://github.com/robtweed/golgi/tree/master/examples/todo) folder for the source code
 files that implement this live example.
 
 ## Installing
