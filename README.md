@@ -58,6 +58,8 @@ DPP should work on all modern browsers, but not on older ones.  It is usable on 
 
 ## Try It Out
 
+### Basic Demo
+
 Try out this [live example](https://robtweed.github.io/DPP/examples/), running directly
 from the code you'll find in the */examples* folder of this repo.
 
@@ -78,6 +80,26 @@ in Chrome, use the *Application* tab to find *indexedDB*).
 
 Note that you can manually clear down the *indexedDB* database from the browser's Developer Tools.
 
+
+### ToDo Application Demo
+
+If you're wanting to see DPP in use in a more realistic application environment,
+try running this [live ToDo application](https://robtweed.github.io/golgi/examples/todo/).
+
+The application is based on the UI design from the [ToDoMVC](https://todomvc.com/) examples,
+but without an MVC design focus.  Instead, this version uses all the key features
+that are built into our 
+[*Golgi*](https://github.com/robtweed/golgi/) WebComponent framework.
+
+This ToDo application showcases the use of DPP, allowing
+ the persistent *todo* object to be treated in the *Golgi* application as if it was
+just a plain old simple JavaScript object.  DPP automatically handles its storage and
+retrieval from IndexedDB.
+
+**NOTE:** You must use a modern browser that supports WebComponents to run this example!
+
+See the [*Golgi /examples/todo*](https://github.com/robtweed/golgi/examples/todo) folder for the source code
+files that implement this live example.
 
 ## Installing
 
