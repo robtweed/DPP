@@ -86,20 +86,13 @@ Note that you can manually clear down the *indexedDB* database from the browser'
 If you're wanting to see DPP in use in a more realistic application environment,
 try running this [live ToDo application](https://robtweed.github.io/golgi/examples/todo/).
 
-The application is based on the UI design from the [ToDoMVC](https://todomvc.com/) examples,
-but without an MVC design focus.  Instead, this version uses all the key features
-that are built into our 
-[*Golgi*](https://github.com/robtweed/golgi/) WebComponent framework.
-
-This ToDo application showcases the use of DPP, allowing
- the persistent *todo* object to be treated in the *Golgi* application as if it was
-just a plain old simple JavaScript object.  DPP automatically handles its storage and
-retrieval from IndexedDB.
+This demonstrates the use of DPP to provide both persistent state data and reactive application control.
 
 **NOTE:** You must use a modern browser that supports WebComponents to run this example!
 
-See the [*Golgi /examples/todo*](https://github.com/robtweed/golgi/tree/master/examples/todo) folder for the source code
-files that implement this live example.
+For details about and source code for this application, see the 
+[* Golgi /examples/todo*](https://github.com/robtweed/golgi/tree/master/examples/todo) folder.
+
 
 ## Installing
 
@@ -473,6 +466,77 @@ persisted, because you'll overwrite the Proxy Object:
   We therefore recommend that DPP is used for small persistent objects.  You should probably run some benchmark tests to confirm the speed of retrieval of typical instances of the objects you wish to use with DPP.
 
 - You need to be aware that different browsers have different policies for the retention times of data held in *indexedDB*.  [This document from the authors of the Dexie *indexedDB* wrapper](https://dexie.org/docs/StorageManager) is quite helpful, and applies equally to data you store in *indexedDB* using DPP.
+
+
+## Reactive Use of DPP
+
+An additionally powerful feature of DPP is that it can be used to implement reactive behaviour within your applications,
+simply by listening for two events:
+
+- Save
+- Delete
+
+These events are emitted whenever any changes are made to your persistent object.
+
+### Save Event
+
+To handle the Save event:
+
+        dpp.on('save', (data) => {
+          // your handler
+        });
+
+The *data* object structure is:
+
+        {
+          key: {{key array}},
+          value: {{ new value at this key }}
+        }
+
+For example, if your persistent object was *todos* and you saved:
+
+        todos.byId[1] = {
+          text: 'Start Project',
+          completed: false
+        }
+
+then two save events would be emitted with data being:
+
+        {
+          key: ['byId', 1, 'text'],
+          value: 'Start Project'
+        }
+
+and
+
+        {
+          key: ['byId', 1, 'completed'],
+          value: false
+        }
+
+
+### Delete Event
+
+To handle the Delete event:
+
+        dpp.on('delete', (key) => {
+          // your handler
+        });
+
+The *key* argument is an array representing the keys for the deleted item.
+
+For example, if you invoked:
+
+        delete todos.byId[1]
+
+then the *key* argument of the Delete event would be:
+
+
+        ['byId', 1]
+
+
+You'll probably find that you don't actually need the key and data arguments in your reactive logic: you'll
+simply want to trigger a state update to your User Interface whenever either event is fired.
 
 
 ## Secure/Encrypted Persistent Storage

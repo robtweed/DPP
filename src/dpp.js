@@ -23,7 +23,7 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-24 August 2022 
+9 August 2023
 
  */
 
@@ -202,7 +202,10 @@ let DPP = class {
             function save(key, value) {
 
               if (key.length === 1) target[prop] = value;
-              dpp.emit('save', value);
+              dpp.emit('save', {
+                key: key,
+                value: value
+              });
               let obj = {
                 type: 'put',
                 key: key,
