@@ -92,22 +92,12 @@ DPP should work on all modern browsers, but not on older ones.  It is usable on 
 Try out this [live example](https://robtweed.github.io/DPP/examples/), running directly
 from the code you'll find in the */examples* folder of this repo.
 
-The first time you run it, the Proxy Object in the example (named *a*) will be empty.  Type in any valid JSON
-into the textarea box and click the update button to add some content, eg:
+Each time you load/reload the page, a persistent object named *myObj* is extended.
 
-      {
-        "hello": "world"
-      }
+It includes a button that clears down the object and reloads the page again.
 
-Note that when using this example, you must enter properly-formatted JSON, so string keys or values must be double-quoted.  This is because the text you enter into the textarea window has to be parsed as JSON before being applied to the Proxy object.
-
-Now try reloading the page in the browser.  Provided your browser is compatible (see above),
-you should see that the Proxy Object (*a*) is restored with its previous contents.
-
-Try using the browser's Developer Tools to examine the contents of the *indexedDB* database (eg
-in Chrome, use the *Application* tab to find *indexedDB*).
-
-Note that you can manually clear down the *indexedDB* database from the browser's Developer Tools.
+Note that you can also view the persistent version of this object and and manually clear it down 
+in the *indexedDB* database: use the browser's Developer Tools.
 
 
 ### ToDo Application Demo
@@ -307,20 +297,29 @@ if you restart your script in your browser, you'll find that the previous conten
 
 ## Worked Example
 
-This simple example creates and populates a Persistent Object named *a*.  It will use the CDN versions of everything:
+This simple example adds to a persistent object named *myObj* each time the page is loaded/reloaded.  
+
+It includes a button to clear the object down.
 
 Here's the module file:
 
 ### app.js
 
         (async () => {
-
           const {createDPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp_browser.min.js');
           let dpp = await createDPP({storeName: 'demo'});
+
+          // recover myObj from indexedDB if it exists
+
           let myObj = await dpp.start();
+
+          // if it didn't previously exist in indexedDB, 
+          //  instantiate its counter and arr properties
 
           if (!myObj.counter) myObj.counter = 0;
           if (!myObj.arr) myObj.arr = [];
+
+          // increment the counter and add a new element to the array
 
           myObj.counter++;
 
@@ -328,41 +327,57 @@ Here's the module file:
             time: Date.now()
           });
 
-          console.log('myObj: ' + JSON.stringify(myObj));
+          // display the results in the web page
 
+          document.getElementById('content').textContent = JSON.stringify(myObj, null, 2);
+
+          // add the clear-down button handler
+
+          document.getElementById('cleardown').addEventListener("click", async () => {
+
+            // wait for committed messages back from DPP for each of the two requested changes
+            //  before reloading the page, to ensure that the DPP/QOper8 WebWorker has committed
+            //  the changes to indexedDB
+
+            let count = 0;
+            dpp.on('committed', () => {
+              count++;
+              if (count > 1) document.location.reload();
+            });
+            
+            // clear down the array and reset the counter
+            
+            myObj.arr = [];
+            myObj.counter = 0;
+          });
         })();
 
 
-
-Load and run this module in your browser with a web page such as this:
-
+Here's the web page that loads the module and displays the results:
 
 ### index.html
 
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <title>DPP Demo</title>
-        </head>
-        <body>
-          <script type="module" src="./app.js"></script>
-        </body>
-      </html>
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <title>DPP Demo</title>
+          </head>
+          <body>
+            <script type="module" src="./app.js"></script>
 
+            <button id="cleardown">Click Me to Clear Down Object</button>
+            <br />
+            <br />
 
-When you load it into you browser, take a look at the console log in your browser's development tools panel.
+            <div>Contents of the myObj Object:</div>
+            <br />
+            <pre id="content"></pre>
 
-Each time you load/reload the page, you'll see that the object *myObj* has been added to, eg:
+          </body>
+        </html>
 
-        myObj: {"counter":1,"arr":[{"time":1691913947097}]}
-
-        myObj: {"arr":[{"time":1691913947097},{"time":1691913998671}],"counter":2}
-
-        myObj: {"arr":[{"time":1691913947097},{"time":1691913998671}],{"time":1691914072961}],"counter":3}
-
-        etc...
-
-You'll be able to see its persisted image in the *indexedDB* database by using the *Application* tab in your
+You'll also be able to see the persisted copy of the *myObj* object in the *indexedDB* database 
+by using the *Application* tab in your
 browser's development tools panel.  Remember that you don't normally need to access the *indexedDB* database
 yourself, but it's interesting to inspect its contents.
 
@@ -543,6 +558,21 @@ then the *key* argument of the Delete event would be:
 
 You'll probably find that you don't actually need the key and data arguments in your reactive logic: you'll
 simply want to trigger a state update to your User Interface whenever either event is fired.
+
+
+### Committed Event
+
+The *committed* event is emitted whenever DPP receives back an *ok* response message from the
+QOper8 WebWorker.  On receipt of this event you can be sure that a *save* or *delete* change to the DPP proxy
+object has been committed into its persistent copy within *indexedDB*.
+
+To handle the Committed event:
+
+        dpp.on('committed', () => {
+          // your handler
+        });
+
+Note that it has no argument.
 
 
 ## Secure/Encrypted Persistent Storage
