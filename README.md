@@ -110,7 +110,7 @@ This demonstrates the use of DPP to provide both persistent state data and react
 **NOTE:** You must use a modern browser that supports WebComponents to run this example!
 
 For details about and source code for this application, see the 
-[* Golgi /examples/todo*](https://github.com/robtweed/golgi/tree/master/examples/todo) folder.
+[*Golgi* */examples/todo*](https://github.com/robtweed/golgi/tree/master/examples/todo) folder.
 
 
 ## Installing
