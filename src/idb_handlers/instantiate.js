@@ -23,7 +23,7 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-24 August 2022 
+10 August 2023 
 
  */
 
@@ -158,7 +158,10 @@ self.handler = async function(obj, finished) {
         let objectStore = this.getObjectStore('readwrite');
         let request = objectStore.put(value);
         request.onsuccess = function() {
-          worker.emit('putCommitted', value);
+          worker.emit('putCommitted', {
+            objectStore: objectStore,
+            value:value
+          });
           callback({key: request.result});
         };
 
@@ -337,7 +340,10 @@ self.handler = async function(obj, finished) {
       let objectStore = this.getObjectStore('readwrite');
       let request = objectStore.delete(key);
        request.onsuccess = function() {
-         worker.emit('deleteCommitted', key);
+         worker.emit('deleteCommitted', {
+           objectStore: objectStore,
+           key: key
+         });
          callback({ok: true});
        };
 
@@ -569,7 +575,9 @@ self.handler = async function(obj, finished) {
     let newVersion = self.idb.db.version + 1;
     self.idb.db.close();
     await open(newVersion, authMethods);
-    worker.emit('databaseReady');
+    worker.emit('databaseReady', {
+      objectStores: objectStores
+    });
     finished({
       db_ready: true,
       qoper8: {
@@ -579,7 +587,9 @@ self.handler = async function(obj, finished) {
 
   }
   else {
-    this.emit('databaseReady');
+    this.emit('databaseReady',{
+      objectStores: objectStores
+    });
 
     finished({
       db_ready: true,

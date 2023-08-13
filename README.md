@@ -18,6 +18,35 @@ will persist automatically between browser sessions.
 Next time you start a browser session, any persistent objects you define will be restored to their previous state
 automatically.
 
+## Quick Example
+
+The following creates a persistent object named *myObj* which adds to its content every time you reload the page:
+
+        const {createDPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp_browser.min.js');
+        let dpp = await createDPP({storeName: 'demo'});
+        let myObj = await dpp.start();
+
+        if (!myObj.counter) myObj.counter = 0;
+        if (!myObj.arr) myObj.arr = [];
+
+        myObj.counter++;
+
+        myObj.arr.push({
+          time: Date.now()
+        });
+
+        console.log('myObj: ' + JSON.stringify(myObj));
+
+Output on each page load/reload
+
+        myObj: {"counter":1,"arr":[{"time":1691913947097}]}
+
+        myObj: {"arr":[{"time":1691913947097},{"time":1691913998671}],"counter":2}
+
+        myObj: {"arr":[{"time":1691913947097},{"time":1691913998671}],{"time":1691914072961}],"counter":3}
+
+        etc...
+
 
 ## How does DPP Manage to Persist JavaScript Objects?
 
@@ -284,28 +313,25 @@ Here's the module file:
 
 ### app.js
 
-      (async () => {
+        (async () => {
 
-        // load/import the DPP module from its source directory (change the path as appropriate)
+          const {createDPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp_browser.min.js');
+          let dpp = await createDPP({storeName: 'demo'});
+          let myObj = await dpp.start();
 
-        const {createDPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp_browser.min.js');
-        let dpp = await createDPP({storeName: 'po_a'});
-        let a = await dpp.start();
+          if (!myObj.counter) myObj.counter = 0;
+          if (!myObj.arr) myObj.arr = [];
 
-        // Now you can create and maintain properties for your Proxy Object, eg:
+          myObj.counter++;
 
-        a.test = {
-          foo: 'bar',
-          foo2: {
-            a: 123,
-            b: 323
-          }
-        };
-        a.arr = [100, 200, 300];
+          myObj.arr.push({
+            time: Date.now()
+          });
 
-        console.log('a: ' + JSON.stringify(a, null, 2));
+          console.log('myObj: ' + JSON.stringify(myObj));
 
-      })();
+        })();
+
 
 
 Load and run this module in your browser with a web page such as this:
@@ -319,46 +345,26 @@ Load and run this module in your browser with a web page such as this:
           <title>DPP Demo</title>
         </head>
         <body>
-          <script type="module" src="/app.js"></script>
+          <script type="module" src="./app.js"></script>
         </body>
       </html>
 
 
 When you load it into you browser, take a look at the console log in your browser's development tools panel.
 
+Each time you load/reload the page, you'll see that the object *myObj* has been added to, eg:
+
+        myObj: {"counter":1,"arr":[{"time":1691913947097}]}
+
+        myObj: {"arr":[{"time":1691913947097},{"time":1691913998671}],"counter":2}
+
+        myObj: {"arr":[{"time":1691913947097},{"time":1691913998671}],{"time":1691914072961}],"counter":3}
+
+        etc...
+
 You'll be able to see its persisted image in the *indexedDB* database by using the *Application* tab in your
 browser's development tools panel.  Remember that you don't normally need to access the *indexedDB* database
 yourself, but it's interesting to inspect its contents.
-
-
-So now modify the *app.js* file, removing the lines that created the content in your Persistent Object (a):
-
-
-      (async () => {
-        const {createDPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp_browser.min.js');
-        let dpp = await createDPP({storeName: 'po_a'});
-        let a = await dpp.start();
-        console.log('a: ' + JSON.stringify(a, null, 2));
-      })();
-
-
-Reload the *index.html* page in your browser, and you should see that the Proxy Object (a) has been
-restored to its previous state.  You can now continue to use and modify it!
-
-
-Finally, see what happens if you modify the *app.js* file again as follows:
-
-
-      (async () => {
-        const {createDPP} = await import('https://cdn.jsdelivr.net/gh/robtweed/DPP/src/dpp_browser.min.js');
-        let dpp = await createDPP({storeName: 'po_a'});
-
-        let a = await dpp.start('new'); // <== add the 'new' argument
-
-        console.log('a: ' + JSON.stringify(a, null, 2));
-      })();
-
-This time you'll find that the *indexedDB* Object Store (po_a) is cleared down and your Proxy Object (a) is empty.
 
 
 ## DPP APIs
