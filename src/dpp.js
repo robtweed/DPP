@@ -23,7 +23,7 @@
  |  limitations under the License.                                           |
  ----------------------------------------------------------------------------
 
-13 August 2023
+7 November 2023
 
  */
 
@@ -37,7 +37,10 @@ let handlerCode = new Map([
 
   ['put', `self.handler=async function(e,a){let t="";e.qoper8&&e.qoper8.token&&(t=e.qoper8.token);if(self.idb&&self.idb.db){let i=e.key,r=e.value,s=self.idb.stores[self.idb.storeName];if(!s.isValidToken(t))return a({error:"Invalid access attempt"});if(!s.isReady(t))return a({error:"Database not initialised for access"});await s.clearByKey(i,t);let o={id:i,value:r};await s.put(o,void 0,t),a({ok:!0})}else a({error:"Database not instantiated"})};`],
 
-  ['delete', `self.handler=async function(e,t){let a="";e.qoper8&&e.qoper8.token&&(a=e.qoper8.token);if(self.idb&&self.idb.db){let r=e.key,s=self.idb.stores[self.idb.storeName];if(!s.isValidToken(a))return t({error:"Invalid access attempt"});await s.clearByKey(r,a),t({ok:!0})}else t({error:"Database not instantiated"})};`]
+  ['delete', `self.handler=async function(e,t){let a="";e.qoper8&&e.qoper8.token&&(a=e.qoper8.token);if(self.idb&&self.idb.db){let r=e.key,s=self.idb.stores[self.idb.storeName];if(!s.isValidToken(a))return t({error:"Invalid access attempt"});await s.clearByKey(r,a),t({ok:!0})}else t({error:"Database not instantiated"})};`],
+
+ ['clear', `self.handler=async function(e,t){let a="";e.qoper8&&e.qoper8.token&&(a=e.qoper8.token);if(self.idb&&self.idb.db){e.key;let r=self.idb.stores[self.idb.storeName];if(!r.isValidToken(a))return t({error:"Invalid access attempt"});await r.clear(),t({ok:!0})}else t({error:"Database not instantiated"})};
+`]
 
 ]);
 
@@ -53,8 +56,8 @@ let DPP = class {
     let storeName = options.storeName || 'DPP_Store';
 
     this.name = 'DPP-DB';
-    this.build = '2.6';
-    this.buildDate = '24 August 2022';
+    this.build = '2.7';
+    this.buildDate = '7 November 2023';
     this.listeners = new Map();
     this.logging = logging || false;
 
@@ -112,7 +115,20 @@ let DPP = class {
         qoper8.message(msg, callback);
       };
 
-      return await new dpp.persistAs().proxy(mode);
+      //return await new dpp.persistAs().proxy(mode);
+
+      let obj = await new dpp.persistAs().proxy(mode);
+      obj.clear = async function() {
+        let msg = {
+          type: 'clear',
+          qoper8: {
+            token: res.qoper8.token
+          }
+        };
+        await qoper8.send(msg);
+      };
+
+      return obj;
     }
 
 

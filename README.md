@@ -335,20 +335,12 @@ Here's the module file:
 
           document.getElementById('cleardown').addEventListener("click", async () => {
 
-            // wait for committed messages back from DPP for each of the two requested changes
-            //  before reloading the page, to ensure that the DPP/QOper8 WebWorker has committed
-            //  the changes to indexedDB
+            // use the DPP object's clear() method to clear down all content,
+            // but leaving the DPP object instantiated
+            //  await its completion and then reload the page
 
-            let count = 0;
-            dpp.on('committed', () => {
-              count++;
-              if (count > 1) document.location.reload();
-            });
-            
-            // clear down the array and reset the counter
-            
-            myObj.arr = [];
-            myObj.counter = 0;
+            await myObj.clear();
+            document.location.reload();
           });
         })();
 
@@ -442,6 +434,12 @@ the specified *indexedDB* ObjectStore
 the Proxy Object will be empty.  For example:
 
       let local_object = await dpp.start('new');
+
+- deleting all content within a local object:
+
+        await local_object.clear();
+
+  As this method can take time to complete, you should always use *await* when invoking it.
 
 
 ## Limitations to DPP
